@@ -347,6 +347,13 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg width
     </div>
 
     <!-- DASHBOARD (shown when already logged in) -->
+    <div class="dash-tabs" id="dash-tabs" style="display:none;">
+  <button class="dash-tab act" onclick="showDashTab('overview',this)">📊 Overview</button>
+  <button class="dash-tab" onclick="showDashTab('documents',this)">📁 Documents</button>
+  <button class="dash-tab" onclick="showDashTab('settings',this)">⚙️ Settings</button>
+</div>
+
+    
     <div class="dashboard" id="dashboard">
       <div class="dash-welcome">
         <div class="dash-av" id="dash-av">U</div>
