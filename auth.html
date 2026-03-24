@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Login / Sign Up – OnlyJobs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+.google-btn-wrap{width:100%;display:flex;justify-content:center;}
+.google-btn-wrap iframe{border-radius:10px !important;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --accent:#E85D04;--al:#FFF3EB;--ad:#C44D00;
+  --dark:#1A1A2E;--text:#2D2D3A;--muted:#6B7280;
+  --border:#E8EAF0;--bg:#fff;--bg2:#F7F8FC;
+  --green:#059669;--gl:#ECFDF5;
+  --blue:#1D4ED8;--bl:#EFF6FF;
+  --purple:#7C3AED;--pl:#F5F3FF;
+  --red:#DC2626;--rl:#FEF2F2;
+  --r:12px;
+}
+html,body{height:100%;font-family:'Figtree',sans-serif;color:var(--text);font-size:15px;line-height:1.6;}
+body{display:flex;flex-direction:column;background:var(--bg2);}
+
+/* ── LAYOUT ── */
+.auth-wrap{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:100vh;}
+@media(max-width:860px){.auth-wrap{grid-template-columns:1fr;}}
+
+/* ── LEFT PANEL ── */
+.left{background:linear-gradient(160deg,#1A1A2E 0%,#2D1B69 50%,#1A1A2E 100%);padding:48px 44px;display:flex;flex-direction:column;position:relative;overflow:hidden;}
+.left::before{content:'';position:absolute;top:-120px;right:-120px;width:400px;height:400px;background:radial-gradient(circle,rgba(232,93,4,0.15) 0%,transparent 70%);}
+.left::after{content:'';position:absolute;bottom:-80px;left:-80px;width:300px;height:300px;background:radial-gradient(circle,rgba(124,58,237,0.12) 0%,transparent 70%);}
+.left-inner{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;}
+
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:48px;}
+.brand-icon{width:42px;height:42px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.brand-icon svg{width:24px;height:24px;fill:#fff;}
+.brand-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;}
+.brand-name span{color:#FDBA74;}
+
+.left-headline{font-family:'Syne',sans-serif;font-size:clamp(26px,3.5vw,38px);font-weight:800;color:#fff;line-height:1.2;margin-bottom:16px;letter-spacing:-0.5px;}
+.left-headline span{color:#FDBA74;}
+.left-sub{color:#94A3B8;font-size:15px;line-height:1.7;margin-bottom:40px;max-width:340px;}
+
+/* features */
+.feat-list{display:flex;flex-direction:column;gap:14px;margin-bottom:auto;}
+.feat{display:flex;align-items:flex-start;gap:14px;}
+.feat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;}
+.feat-text h4{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;}
+.feat-text p{font-size:12.5px;color:#64748B;line-height:1.5;}
+
+/* stats */
+.left-stats{display:flex;gap:24px;margin-top:40px;padding-top:28px;border-top:1px solid rgba(255,255,255,0.08);}
+.lst{text-align:center;}
+.lst-n{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#FDBA74;}
+.lst-l{font-size:11px;color:#475569;margin-top:2px;}
+
+/* testimonial */
+.testi{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px 20px;margin-top:24px;}
+.testi-text{font-size:13px;color:#CBD5E1;line-height:1.6;margin-bottom:12px;font-style:italic;}
+.testi-author{display:flex;align-items:center;gap:10px;}
+.testi-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#E85D04,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
+.testi-info{font-size:12px;color:#64748B;}
+.testi-info strong{color:#94A3B8;display:block;}
+
+@media(max-width:860px){.left{display:none;}}
+
+/* ── RIGHT PANEL ── */
+.right{background:#fff;display:flex;flex-direction:column;justify-content:center;padding:48px 52px;position:relative;}
+@media(max-width:480px){.right{padding:32px 24px;}}
+
+.right-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;}
+.mobile-brand{display:none;align-items:center;gap:10px;text-decoration:none;}
+@media(max-width:860px){.mobile-brand{display:flex;}}
+.mobile-brand-icon{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.mobile-brand-icon svg{width:20px;height:20px;fill:#fff;}
+.mobile-brand-name{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--dark);}
+.mobile-brand-name span{color:var(--accent);}
+.back-home{font-size:13px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:4px;transition:color .15s;}
+.back-home:hover{color:var(--accent);}
+
+/* tabs */
+.auth-tabs{display:flex;background:var(--bg2);border-radius:10px;padding:4px;margin-bottom:28px;}
+.auth-tab{flex:1;padding:10px;text-align:center;border:none;background:transparent;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-radius:7px;transition:all .2s;font-family:'Figtree',sans-serif;}
+.auth-tab.act{background:#fff;color:var(--dark);box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+
+/* form */
+.auth-form{display:none;animation:fadeUp .25s ease;}
+.auth-form.show{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.form-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--dark);margin-bottom:4px;}
+.form-sub{font-size:14px;color:var(--muted);margin-bottom:28px;}
+.form-sub a{color:var(--accent);text-decoration:none;font-weight:600;}
+
+.field{margin-bottom:16px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:400px){.field-row{grid-template-columns:1fr;}}
+label{display:block;font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:6px;letter-spacing:.2px;}
+.inp{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Figtree',sans-serif;color:var(--dark);outline:none;transition:border-color .15s,box-shadow .15s;background:#fff;}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,93,4,0.1);}
+.inp.err{border-color:var(--red);}
+.inp-wrap{position:relative;}
+.inp-wrap .inp{padding-right:44px;}
+.inp-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0;}
+.field-err{font-size:11.5px;color:var(--red);margin-top:5px;display:none;}
+.field-err.show{display:block;}
+
+select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+
+.strength-bar{display:flex;gap:4px;margin-top:7px;}
+.sb{height:4px;flex:1;border-radius:4px;background:var(--border);transition:background .3s;}
+.strength-label{font-size:11px;color:var(--muted);margin-top:5px;}
+
+.checkbox-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:20px;}
+.checkbox-row input[type=checkbox]{width:16px;height:16px;margin-top:2px;accent-color:var(--accent);flex-shrink:0;}
+.checkbox-row label{font-size:13px;color:var(--muted);margin:0;font-weight:400;}
+.checkbox-row label a{color:var(--accent);text-decoration:none;}
+
+.submit-btn{width:100%;padding:13px;background:linear-gradient(135deg,#E85D04,#C44D00);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Figtree',sans-serif;transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.2px;}
+.submit-btn:hover{opacity:.9;}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed;}
+.submit-btn .spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;}
+.divider span{font-size:12px;color:var(--muted);}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.google-btn{width:100%;padding:11px;border:1.5px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .15s;}
+.google-btn:hover{border-color:#CBD5E1;background:var(--bg2);}
+
+.forgot-link{text-align:right;margin-top:-8px;margin-bottom:16px;}
+.forgot-link a{font-size:13px;color:var(--accent);text-decoration:none;font-weight:600;}
+
+/* ── DASHBOARD (shown after login) ── */
+.dashboard{display:none;animation:fadeUp .3s ease;}
+.dashboard.show{display:block;}
+.dash-welcome{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+.dash-av{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#E85D04,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;font-family:'Syne',sans-serif;flex-shrink:0;}
+.dash-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--dark);}
+.dash-sub{font-size:13px;color:var(--muted);}
+.logout-btn{margin-left:auto;background:var(--bg2);border:1.5px solid var(--border);color:var(--muted);padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;}
+
+.dash-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;}
+.ds-card{background:var(--bg2);border-radius:10px;padding:14px;text-align:center;}
+.ds-n{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--dark);}
+.ds-l{font-size:11px;color:var(--muted);margin-top:2px;}
+
+.dash-section-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--dark);margin-bottom:12px;}
+.score-list{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;}
+.score-list::-webkit-scrollbar{width:3px;}
+.score-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.score-item{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);}
+.si-exam{flex:1;}
+.si-exam-name{font-size:13px;font-weight:700;color:var(--dark);}
+.si-exam-date{font-size:11px;color:var(--muted);}
+.si-pct{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;}
+.si-rank{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--purple-light);color:var(--purple);}
+
+.no-scores{text-align:center;padding:32px;color:var(--muted);font-size:14px;}
+.no-scores a{color:var(--accent);text-decoration:none;font-weight:600;}
+
+.dash-cta{display:flex;gap:10px;margin-top:20px;}
+.dash-cta a{flex:1;padding:12px;text-align:center;border-radius:9px;font-size:14px;font-weight:700;text-decoration:none;transition:opacity .15s;}
+.dash-cta a:hover{opacity:.88;}
+.cta-test{background:linear-gradient(135deg,#E85D04,#C44D00);color:#fff;}
+.cta-home{background:var(--bg2);color:var(--dark);border:1.5px solid var(--border);}
+
+/* toast */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:600;opacity:0;transition:all .3s;z-index:9999;pointer-events:none;display:flex;align-items:center;gap:8px;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="auth-wrap">
+  <!-- LEFT PANEL -->
+  <div class="left">
+    <div class="left-inner">
+      <div class="brand">
+        <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M20 7H4C2.9 7 2 7.9 2 9v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-9 8H7v-2h4v2zm6-4H7v-2h10v2z"/><path d="M16 1H8C6.9 1 6 1.9 6 3v3h12V3c0-1.1-.9-2-2-2z"/></svg></div>
+        <div class="brand-name">Only<span>Jobs</span></div>
+      </div>
+
+      <div class="left-headline">Track Every Score.<br><span>Crack Every Exam.</span></div>
+      <div class="left-sub">Create your free account and never lose your mock test history. Know exactly where you stand — state-wise and nationally.</div>
+
+      <div class="feat-list">
+        <div class="feat">
+          <div class="feat-icon" style="background:rgba(232,93,4,0.15);">📊</div>
+          <div class="feat-text">
+            <h4>Score History</h4>
+            <p>Every test you take is saved. See how you improve over time.</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="feat-icon" style="background:rgba(29,78,216,0.15);">🏆</div>
+          <div class="feat-text">
+            <h4>Live National Rankings</h4>
+            <p>See your rank among lakhs of aspirants across India.</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="feat-icon" style="background:rgba(5,150,105,0.15);">📅</div>
+          <div class="feat-text">
+            <h4>Personalized Study Plan</h4>
+            <p>AI-based weak area analysis and study schedule.</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="feat-icon" style="background:rgba(124,58,237,0.15);">🔔</div>
+          <div class="feat-text">
+            <h4>Job Alerts</h4>
+            <p>Get notified about new jobs matching your qualification.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="left-stats">
+        <div class="lst"><div class="lst-n">1.2Cr+</div><div class="lst-l">Users</div></div>
+        <div class="lst"><div class="lst-n">400+</div><div class="lst-l">Questions</div></div>
+        <div class="lst"><div class="lst-n">₹99</div><div class="lst-l">Full Access</div></div>
+      </div>
+
+      <div class="testi">
+        <div class="testi-text">"OnlyJobs helped me crack SSC CGL in my first attempt! The mock tests are exactly like the real exam."</div>
+        <div class="testi-author">
+          <div class="testi-av">RS</div>
+          <div class="testi-info"><strong>Rahul Sharma</strong>SSC CGL 2025 Qualified · Lucknow</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right">
+    <div class="right-top">
+      <a href="index.html" class="mobile-brand">
+        <div class="mobile-brand-icon"><svg viewBox="0 0 24 24"><path d="M20 7H4C2.9 7 2 7.9 2 9v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-9 8H7v-2h4v2zm6-4H7v-2h10v2z"/><path d="M16 1H8C6.9 1 6 1.9 6 3v3h12V3c0-1.1-.9-2-2-2z"/></svg></div>
+        <div class="mobile-brand-name">Only<span>Jobs</span></div>
+      </a>
+      <a href="index.html" class="back-home">← Back to Home</a>
+    </div>
+
+    <!-- AUTH TABS -->
+    <div class="auth-tabs" id="auth-tabs">
+      <button class="auth-tab act" onclick="switchTab('login')">Log In</button>
+      <button class="auth-tab" onclick="switchTab('signup')">Sign Up Free</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div class="auth-form show" id="form-login">
+      <div class="form-title">Welcome back 👋</div>
+      <div class="form-sub">New here? <a href="#" onclick="switchTab('signup')">Create a free account</a></div>
+
+      <div class="field">
+        <label>Email Address</label>
+        <input class="inp" id="l-email" type="email" placeholder="yourname@email.com" autocomplete="email"/>
+        <div class="field-err" id="l-email-err">Please enter a valid email address.</div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <div class="inp-wrap">
+          <input class="inp" id="l-pass" type="password" placeholder="Enter your password" autocomplete="current-password"/>
+          <button class="inp-eye" onclick="togglePwd('l-pass',this)" type="button">👁</button>
+        </div>
+        <div class="field-err" id="l-pass-err">Password is required.</div>
+      </div>
+      <div class="forgot-link"><a href="#">Forgot password?</a></div>
+      <button class="submit-btn" id="login-btn" onclick="doLogin()">
+        <span class="spinner" id="l-spinner"></span>
+        <span id="l-btn-text">Log In to OnlyJobs</span>
+      </button>
+
+      <div class="divider"><span>or continue with</span></div>
+      <div id="g_signin_login" class="google-btn-wrap"></div>
+    </div>
+
+    <!-- SIGNUP FORM -->
+    <div class="auth-form" id="form-signup">
+      <div class="form-title">Join OnlyJobs Free 🚀</div>
+      <div class="form-sub">Already have an account? <a href="#" onclick="switchTab('login')">Log in</a></div>
+
+      <div class="field-row field">
+        <div>
+          <label>First Name</label>
+          <input class="inp" id="s-fname" type="text" placeholder="Rahul" autocomplete="given-name"/>
+          <div class="field-err" id="s-fname-err">First name required.</div>
+        </div>
+        <div>
+          <label>Last Name</label>
+          <input class="inp" id="s-lname" type="text" placeholder="Sharma" autocomplete="family-name"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Email Address</label>
+        <input class="inp" id="s-email" type="email" placeholder="yourname@email.com" autocomplete="email"/>
+        <div class="field-err" id="s-email-err">Please enter a valid email.</div>
+      </div>
+      <div class="field">
+        <label>State</label>
+        <select class="inp" id="s-state">
+          <option value="">Select your state</option>
+          <option>Uttar Pradesh</option><option>Bihar</option><option>Madhya Pradesh</option>
+          <option>Rajasthan</option><option>Maharashtra</option><option>Delhi</option>
+          <option>West Bengal</option><option>Odisha</option><option>Jharkhand</option>
+          <option>Chhattisgarh</option><option>Gujarat</option><option>Karnataka</option>
+          <option>Tamil Nadu</option><option>Andhra Pradesh</option><option>Telangana</option>
+          <option>Kerala</option><option>Punjab</option><option>Haryana</option>
+          <option>Uttarakhand</option><option>Himachal Pradesh</option>
+          <option>Assam</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Target Exam</label>
+        <select class="inp" id="s-exam">
+          <option value="">Select target exam</option>
+          <option>SSC CGL</option><option>SSC CHSL</option><option>RRB NTPC</option>
+          <option>RRB ALP</option><option>SBI PO</option><option>IBPS PO</option>
+          <option>UPSC CSE</option><option>State PSC</option><option>Multiple Exams</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <div class="inp-wrap">
+          <input class="inp" id="s-pass" type="password" placeholder="Create a strong password" autocomplete="new-password" oninput="checkStrength(this.value)"/>
+          <button class="inp-eye" onclick="togglePwd('s-pass',this)" type="button">👁</button>
+        </div>
+        <div class="strength-bar"><div class="sb" id="sb1"></div><div class="sb" id="sb2"></div><div class="sb" id="sb3"></div><div class="sb" id="sb4"></div></div>
+        <div class="strength-label" id="s-strength-lbl"></div>
+        <div class="field-err" id="s-pass-err">Password must be at least 6 characters.</div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="s-terms"/>
+        <label for="s-terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a> of OnlyJobs.</label>
+      </div>
+      <button class="submit-btn" id="signup-btn" onclick="doSignup()">
+        <span class="spinner" id="s-spinner"></span>
+        <span id="s-btn-text">Create Free Account</span>
+      </button>
+
+      <div class="divider"><span>or continue with</span></div>
+      <div id="g_signin_signup" class="google-btn-wrap"></div>
+    </div>
+
+    <!-- DASHBOARD (shown when already logged in) -->
+    <div class="dashboard" id="dashboard">
+      <div class="dash-welcome">
+        <div class="dash-av" id="dash-av">U</div>
+        <div>
+          <div class="dash-name" id="dash-name">Welcome!</div>
+          <div class="dash-sub" id="dash-sub">OnlyJobs Member</div>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">Log Out</button>
+      </div>
+
+      <div class="dash-stats">
+        <div class="ds-card"><div class="ds-n" id="ds-tests">0</div><div class="ds-l">Tests Taken</div></div>
+        <div class="ds-card"><div class="ds-n" id="ds-avg">—</div><div class="ds-l">Avg Score %</div></div>
+        <div class="ds-card"><div class="ds-n" id="ds-best">—</div><div class="ds-l">Best Rank</div></div>
+      </div>
+
+      <div class="dash-section-title">📋 Your Test History</div>
+      <div class="score-list" id="score-list"></div>
+
+      <div class="dash-cta">
+        <a href="mocktest.html" class="cta-test">📝 Take a Mock Test</a>
+        <a href="index.html" class="cta-home">🏠 Go to Home</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── HELPERS ── */
+function $(id){return document.getElementById(id);}
+function showToast(msg,ok=true){
+  const t=$('toast');
+  t.innerHTML=(ok?'✅ ':'❌ ')+msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+function togglePwd(id,btn){
+  const i=$(id);
+  i.type=i.type==='password'?'text':'password';
+  btn.textContent=i.type==='password'?'👁':'🙈';
+}
+
+/* ── PASSWORD STRENGTH ── */
+function checkStrength(v){
+  const bars=['sb1','sb2','sb3','sb4'];
+  const lbl=$('s-strength-lbl');
+  bars.forEach(b=>$(b).style.background='var(--border)');
+  if(!v){lbl.textContent='';return;}
+  let score=0;
+  if(v.length>=6)score++;
+  if(v.length>=10)score++;
+  if(/[A-Z]/.test(v)&&/[0-9]/.test(v))score++;
+  if(/[^A-Za-z0-9]/.test(v))score++;
+  const colors=['#DC2626','#F59E0B','#3B82F6','#059669'];
+  const labels=['Weak','Fair','Good','Strong'];
+  for(let i=0;i<score;i++) $(bars[i]).style.background=colors[score-1];
+  lbl.style.color=colors[score-1];
+  lbl.textContent=labels[score-1]||'';
+}
+
+/* ── TAB SWITCH ── */
+function switchTab(tab){
+  const tabs=document.querySelectorAll('.auth-tab');
+  if(tab==='login'){tabs[0].classList.add('act');tabs[1].classList.remove('act');}
+  else{tabs[1].classList.add('act');tabs[0].classList.remove('act');}
+  $('form-login').className='auth-form'+(tab==='login'?' show':'');
+  $('form-signup').className='auth-form'+(tab==='signup'?' show':'');
+}
+
+/* ── STORAGE ── */
+function getUsers(){return JSON.parse(localStorage.getItem('oj_users')||'[]');}
+function saveUsers(u){localStorage.setItem('oj_users',JSON.stringify(u));}
+function getScores(){return JSON.parse(localStorage.getItem('oj_scores_'+getCurrentUser()?.email)||'[]');}
+function saveScore(s){
+  const key='oj_scores_'+getCurrentUser()?.email;
+  const arr=JSON.parse(localStorage.getItem(key)||'[]');
+  arr.unshift(s);
+  localStorage.setItem(key,JSON.stringify(arr.slice(0,50)));
+}
+function getCurrentUser(){return JSON.parse(localStorage.getItem('oj_current_user')||'null');}
+function setCurrentUser(u){localStorage.setItem('oj_current_user',JSON.stringify(u));}
+
+/* ── LOGIN ── */
+function doLogin(){
+  const email=$('l-email').value.trim().toLowerCase();
+  const pass=$('l-pass').value;
+  let valid=true;
+  if(!email||!/\S+@\S+\.\S+/.test(email)){$('l-email').classList.add('err');$('l-email-err').classList.add('show');valid=false;}
+  else{$('l-email').classList.remove('err');$('l-email-err').classList.remove('show');}
+  if(!pass){$('l-pass').classList.add('err');$('l-pass-err').classList.add('show');valid=false;}
+  else{$('l-pass').classList.remove('err');$('l-pass-err').classList.remove('show');}
+  if(!valid)return;
+
+  setLoading('l',true);
+  setTimeout(()=>{
+    const users=getUsers();
+    const user=users.find(u=>u.email===email&&u.password===btoa(pass));
+    setLoading('l',false);
+    if(!user){showToast('Invalid email or password.',false);$('l-pass').classList.add('err');return;}
+    setCurrentUser(user);
+    showToast('Welcome back, '+user.fname+'!');
+    setTimeout(()=>showDashboard(user),600);
+  },900);
+}
+
+/* ── SIGNUP ── */
+function doSignup(){
+  const fname=$('s-fname').value.trim();
+  const email=$('s-email').value.trim().toLowerCase();
+  const pass=$('s-pass').value;
+  const state=$('s-state').value;
+  const exam=$('s-exam').value;
+  const terms=$('s-terms').checked;
+  let valid=true;
+
+  if(!fname){$('s-fname').classList.add('err');$('s-fname-err').classList.add('show');valid=false;}
+  else{$('s-fname').classList.remove('err');$('s-fname-err').classList.remove('show');}
+  if(!email||!/\S+@\S+\.\S+/.test(email)){$('s-email').classList.add('err');$('s-email-err').classList.add('show');valid=false;}
+  else{$('s-email').classList.remove('err');$('s-email-err').classList.remove('show');}
+  if(pass.length<6){$('s-pass').classList.add('err');$('s-pass-err').classList.add('show');valid=false;}
+  else{$('s-pass').classList.remove('err');$('s-pass-err').classList.remove('show');}
+  if(!terms){showToast('Please accept the Terms of Service.',false);valid=false;}
+  if(!valid)return;
+
+  setLoading('s',true);
+  setTimeout(()=>{
+    const users=getUsers();
+    if(users.find(u=>u.email===email)){setLoading('s',false);showToast('Email already registered. Please log in.',false);return;}
+    const user={fname,lname:$('s-lname').value.trim(),email,password:btoa(pass),state:state||'India',exam:exam||'Multiple',joined:new Date().toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'})};
+    users.push(user);saveUsers(users);setCurrentUser(user);setLoading('s',false);
+    showToast('Account created successfully! Welcome, '+fname+'!');
+    setTimeout(()=>showDashboard(user),600);
+  },1000);
+}
+
+function setLoading(prefix,on){
+  const btn=$(prefix==='l'?'login-btn':'signup-btn');
+  const sp=$(prefix+'-spinner');
+  const txt=$(prefix+'-btn-text');
+  btn.disabled=on;
+  sp.style.display=on?'block':'none';
+  txt.textContent=on?(prefix==='l'?'Logging in...':'Creating account...'):(prefix==='l'?'Log In to OnlyJobs':'Create Free Account');
+}
+
+/* ── DASHBOARD ── */
+function showDashboard(user){
+  $('auth-tabs').style.display='none';
+  $('form-login').className='auth-form';
+  $('form-signup').className='auth-form';
+  const dash=$('dashboard');dash.className='dashboard show';
+  const initials=(user.fname[0]+(user.lname?user.lname[0]:'')).toUpperCase();
+  if(user.picture){
+  $('dash-av').innerHTML='<img src="'+user.picture+'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;" />';
+  $('dash-av').style.background='none';
+}else{
+  $('dash-av').textContent=initials;
+}
+  $('dash-name').textContent=user.fname+(user.lname?' '+user.lname:'');
+  $('dash-sub').textContent=(user.exam||'Aspirant')+' · '+(user.state||'India')+' · Joined '+user.joined;
+  loadScores();
+}
+
+function loadScores(){
+  const scores=getScores();
+  $('ds-tests').textContent=scores.length;
+  if(scores.length){
+    const avg=Math.round(scores.reduce((a,s)=>a+s.pct,0)/scores.length);
+    const best=Math.min(...scores.filter(s=>s.rank).map(s=>s.rank));
+    $('ds-avg').textContent=avg+'%';
+    $('ds-best').textContent=best<9999?'#'+best:'—';
+  }else{$('ds-avg').textContent='—';$('ds-best').textContent='—';}
+
+  const list=$('score-list');
+  if(!scores.length){
+    list.innerHTML='<div class="no-scores">No tests taken yet.<br><a href="mocktest.html">Take your first mock test →</a></div>';
+    return;
+  }
+  const examColors={ssc_cgl:'#E85D04',rrb_ntpc:'#059669',sbi_po:'#7C3AED',upsc_cse:'#1D4ED8'};
+  list.innerHTML=scores.map(s=>`
+    <div class="score-item">
+      <div style="width:36px;height:36px;border-radius:8px;background:${examColors[s.examKey]||'#E85D04'}22;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${s.icon||'📋'}</div>
+      <div class="si-exam">
+        <div class="si-exam-name">${s.examName}</div>
+        <div class="si-exam-date">${s.date} · ${s.time}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="si-pct" style="color:${s.pct>=70?'var(--green)':s.pct>=50?'var(--accent)':'var(--red)'}">${s.pct}%</div>
+        <div class="si-rank">#${s.rank||'—'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function doLogout(){
+  localStorage.removeItem('oj_current_user');
+  $('auth-tabs').style.display='flex';
+  $('dashboard').className='dashboard';
+  switchTab('login');
+  showToast('Logged out successfully.');
+}
+
+function googleAuth(){showToast('Google login coming soon! Use email signup for now.',false);}
+
+/* ── AUTO CHECK ── */
+window.addEventListener('DOMContentLoaded',()=>{
+  const p=new URLSearchParams(location.search);
+  if(p.get('tab')==='signup')switchTab('signup');
+  const u=getCurrentUser();
+  if(u)showDashboard(u);
+});
+
+/* ── Enter key support ── */
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Enter'){
+    if($('form-login').classList.contains('show'))doLogin();
+    else if($('form-signup').classList.contains('show'))doSignup();
+  }
+});
+</script>
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+/* ── PASTE YOUR CLIENT ID HERE ── */
+var G_CLIENT_ID = '334985019223-4jlo66c1c3b8i3k3baj3ps0lkbh81dkl.apps.googleusercontent.com';
+
+function initGoogleSignIn() {
+  if (!window.google) return;
+  google.accounts.id.initialize({
+    client_id: G_CLIENT_ID,
+    callback: handleGoogleResponse,
+    auto_select: false,
+    cancel_on_tap_outside: true
+  });
+
+  /* Render button in Login form */
+  google.accounts.id.renderButton(
+    document.getElementById('g_signin_login'),
+    {
+      theme: 'outline',
+      size: 'large',
+      width: 360,
+      text: 'signin_with',
+      shape: 'rectangular',
+      logo_alignment: 'center'
+    }
+  );
+
+  /* Render button in Signup form */
+  google.accounts.id.renderButton(
+    document.getElementById('g_signin_signup'),
+    {
+      theme: 'outline',
+      size: 'large',
+      width: 360,
+      text: 'signup_with',
+      shape: 'rectangular',
+      logo_alignment: 'center'
+    }
+  );
+}
+
+function handleGoogleResponse(response) {
+  /* Decode the JWT token from Google */
+  var parts = response.credential.split('.');
+  var payload = JSON.parse(atob(parts[1]));
+
+  var email = payload.email;
+  var fname = payload.given_name || payload.name.split(' ')[0];
+  var lname = payload.family_name || '';
+  var picture = payload.picture;
+  var googleId = payload.sub;
+
+  /* Check if user already exists */
+  var users = getUsers();
+  var existing = users.find(function(u){ return u.email === email; });
+
+  if (existing) {
+    /* Existing user — log in */
+    existing.picture = picture;
+    saveUsers(users);
+    setCurrentUser(existing);
+    showToast('Welcome back, ' + existing.fname + '! 🎉');
+    setTimeout(function(){ showDashboard(existing); }, 600);
+  } else {
+    /* New user — auto signup */
+    var newUser = {
+      fname: fname,
+      lname: lname,
+      email: email,
+      password: '',
+      googleId: googleId,
+      picture: picture,
+      state: 'India',
+      exam: 'Multiple',
+      joined: new Date().toLocaleDateString('en-IN', {
+        year: 'numeric', month: 'short', day: 'numeric'
+      }),
+      provider: 'google'
+    };
+    users.push(newUser);
+    saveUsers(users);
+    setCurrentUser(newUser);
+    showToast('Account created with Google! Welcome, ' + fname + '! 🎉');
+    setTimeout(function(){ showDashboard(newUser); }, 600);
+  }
+}
+
+/* Load Google after page loads */
+window.addEventListener('load', function() {
+  var interval = setInterval(function() {
+    if (window.google) {
+      clearInterval(interval);
+      initGoogleSignIn();
+    }
+  }, 200);
+});
+</script>
+
+  
+</body>
+</html>
