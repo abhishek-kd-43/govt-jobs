@@ -2211,6 +2211,12 @@
         var editingScrapedId = null;
         var scrapedReadOnlyMode = false;
 
+        function getHostedWorkflowUrl() {
+            var owner = window.location.hostname.split('.')[0] || 'abhishek-kd-43';
+            var repo = (window.location.pathname.split('/').filter(Boolean)[0]) || 'govt-jobs';
+            return 'https://github.com/' + owner + '/' + repo + '/actions/workflows/daily-scrape-pages.yml';
+        }
+
         function fetchJson(url, options) {
             return fetch(url, options).then(function(r) {
                 if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -2238,7 +2244,11 @@
             });
 
             if (runBtn) {
-                runBtn.title = readOnly ? 'Run the scraper from a local Python backend, not GitHub Pages.' : '';
+                runBtn.textContent = readOnly ? 'Open Daily Scrape Workflow' : '🔄 Run Scraper Now';
+                runBtn.disabled = false;
+                runBtn.style.opacity = '1';
+                runBtn.style.cursor = 'pointer';
+                runBtn.title = readOnly ? 'Open GitHub Actions to run or inspect the scheduled scraper workflow.' : '';
             }
 
             if (saveBtn) {
@@ -2249,7 +2259,7 @@
         function applyScrapedData(data, readOnly) {
             rawScrapedData = data;
             setScrapedMode(readOnly, readOnly
-                ? 'Read-only mode is active. GitHub Pages can display <code>data.json</code>, but running the scraper and saving edits require <code>python3 server.py</code> or another backend.'
+                ? 'Hosted mode is active. This page can display published <code>data.json</code>, while the daily scraper runs through GitHub Actions. Use <b>Open Daily Scrape Workflow</b> to run or inspect the scheduled job.'
                 : '');
             renderScrapedTable('', '');
             var total = (data.latest_jobs||[]).length + (data.results||[]).length + (data.admit_cards||[]).length + (data.answer_keys||[]).length;
@@ -2348,7 +2358,7 @@
 
         function triggerScraper() {
             if (scrapedReadOnlyMode) {
-                showToast('Hosted site is read-only. Run scraper from local server or backend.', 'error');
+                window.open(getHostedWorkflowUrl(), '_blank', 'noopener');
                 return;
             }
             showToast('🔄 Scraper started… (~30s)', 'success');
