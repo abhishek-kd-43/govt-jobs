@@ -9,6 +9,7 @@ import random
 import traceback
 from datetime import date
 from datetime import datetime, timezone
+from html import escape
 from urllib.parse import urljoin, urlparse, urldefrag
 
 HEADERS = {
@@ -108,6 +109,12 @@ CATEGORY_LIMITS = {
     'admit_cards': int(os.getenv('ONLYJOBS_LIMIT_ADMIT_CARDS', '20')),
     'answer_keys': int(os.getenv('ONLYJOBS_LIMIT_ANSWER_KEYS', '18')),
 }
+OFFICIAL_SOURCE_LIMITS = {
+    'upsc_active': int(os.getenv('ONLYJOBS_LIMIT_UPSC_ACTIVE', '12')),
+    'upsc_recruitment': int(os.getenv('ONLYJOBS_LIMIT_UPSC_RECRUITMENT', '6')),
+    'ibps_recruitment': int(os.getenv('ONLYJOBS_LIMIT_IBPS_RECRUITMENT', '12')),
+    'rac_recruitment': int(os.getenv('ONLYJOBS_LIMIT_RAC_RECRUITMENT', '4')),
+}
 LISTING_PAGE_LIMIT = int(os.getenv('ONLYJOBS_LISTING_PAGE_LIMIT', '10'))
 FJA_STATE_PAGE_LIMIT = int(os.getenv('ONLYJOBS_FJA_STATE_PAGE_LIMIT', '1'))
 REQUEST_DELAY_SECONDS = float(os.getenv('ONLYJOBS_REQUEST_DELAY_SECONDS', '0.15'))
@@ -179,10 +186,26 @@ FJA_STATE_PAGE_MAP = {
     'Uttarakhand': 'https://www.freejobalert.com/uttarakhand-government-jobs/',
     'West Bengal': 'https://www.freejobalert.com/wb-government-jobs/',
 }
+IBPS_ALLOWED_PATTERNS = [
+    re.compile(pattern, re.IGNORECASE)
+    for pattern in [
+        r'\bPSB\b', r'\bIDBI\b', r'\bIIFCL\b', r'\bNABFID\b', r'\bNABARD\b',
+        r'\bSIDBI\b', r'\bSBI\b', r'\bPNB\b', r'\bBOB\b', r'\bBank of India\b',
+        r'\bIndian Bank\b', r'\bCentral Bank\b', r'\bCanara\b', r'\bUnion Bank\b'
+    ]
+]
+IBPS_SKIP_PATTERNS = [
+    re.compile(pattern, re.IGNORECASE)
+    for pattern in [r'\bprogramme\b', r'\bpgip\b', r'\bco-operative\b', r'\bspecial recruitment drive\b']
+]
 
 
 def category_limit(category: str) -> int:
     return CATEGORY_LIMITS.get(category, LISTING_PAGE_LIMIT)
+
+
+def official_source_limit(source_name: str) -> int:
+    return OFFICIAL_SOURCE_LIMITS.get(source_name, LISTING_PAGE_LIMIT)
 
 
 def empty_scrape_result() -> dict:
@@ -305,6 +328,122 @@ def dedupe_category_entries(entries):
         seen.add(key)
         deduped.append(entry)
     return deduped
+
+
+def normalize_spaces(value: str) -> str:
+    return ' '.join(str(value or '').split()).strip()
+
+
+def years_in_text(value: str):
+    return [int(match.group(0)) for match in re.finditer(r'\b20\d{2}\b', value or '')]
+
+
+def is_current_or_future_notice(value: str) -> bool:
+    years = years_in_text(value)
+    return not years or max(years) >= date.today().year
+
+
+def should_keep_ibps_recruitment(org: str, role: str) -> bool:
+    combined = normalize_spaces(f'{org} {role}')
+    if any(pattern.search(combined) for pattern in IBPS_SKIP_PATTERNS):
+        return False
+    return any(pattern.search(combined) for pattern in IBPS_ALLOWED_PATTERNS)
+
+
+def request_soup(url: str, timeout: int = 30) -> BeautifulSoup:
+    session = requests.Session()
+    session.mount('https://', requests.adapters.HTTPAdapter(max_retries=3))
+    res = session.get(url, headers=HEADERS, timeout=timeout)
+    res.raise_for_status()
+    return BeautifulSoup(res.text, 'html.parser')
+
+
+def absolute_clean_html(node, base_url: str) -> str:
+    if not node:
+        return ''
+
+    fragment = BeautifulSoup(str(node), 'html.parser')
+    for tag in list(fragment.find_all(['script', 'style', 'iframe', 'noscript', 'svg', 'img', 'meta', 'link'])):
+        tag.decompose()
+
+    for anchor in fragment.find_all('a', href=True):
+        anchor['href'] = normalize_target_url(urljoin(base_url, anchor.get('href', '')))
+        anchor['target'] = '_blank'
+        anchor['rel'] = 'nofollow noopener'
+
+    return str(fragment)
+
+
+def build_official_content_html(source_name: str, summary_lines=None, links=None, extra_html: str = '') -> str:
+    summary_lines = [normalize_spaces(line) for line in (summary_lines or []) if normalize_spaces(line)]
+    link_pairs = []
+    seen_urls = set()
+    for label, href in links or []:
+        clean_href = normalize_target_url(href)
+        clean_label = normalize_spaces(label)
+        if not clean_href or not clean_label or clean_href in seen_urls:
+            continue
+        seen_urls.add(clean_href)
+        link_pairs.append((clean_label, clean_href))
+
+    summary_html = ''
+    if summary_lines:
+        summary_html = ''.join(
+            f'<li style="margin:0 0 8px 0;">{escape(line)}</li>'
+            for line in summary_lines
+        )
+        summary_html = f'<ul style="margin:0;padding-left:20px;color:#334155;line-height:1.8;">{summary_html}</ul>'
+
+    links_html = ''
+    if link_pairs:
+        links_html = ''.join(
+            f'<li style="margin:0 0 8px 0;"><a href="{escape(href, quote=True)}" target="_blank" rel="nofollow noopener" style="color:#1D4ED8;text-decoration:none;">{escape(label)}</a></li>'
+            for label, href in link_pairs
+        )
+        links_html = (
+            '<div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:16px 18px;margin-top:18px;">'
+            '<div style="font-size:14px;font-weight:800;color:#9A3412;margin-bottom:10px;">Official Links</div>'
+            f'<ul style="margin:0;padding-left:20px;color:#7C2D12;line-height:1.8;">{links_html}</ul>'
+            '</div>'
+        )
+
+    intro = (
+        '<div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:18px 20px;margin-bottom:18px;">'
+        f'<p style="margin:0 0 12px 0;color:#0F172A;font-weight:700;">Direct update from the official {escape(source_name)} recruitment portal.</p>'
+        f'{summary_html}'
+        '</div>'
+    )
+    return f'{intro}{extra_html}{links_html}'
+
+
+def create_official_entry(title: str, url: str, source_label: str, content_html: str, info: dict = None, category: str = 'latest_jobs') -> dict:
+    safe_title = normalize_spaces(title)
+    post_id = hashlib.md5(f'{category}:{url}'.encode('utf-8')).hexdigest()
+    parsed = BeautifulSoup(content_html or '', 'html.parser')
+    derived_info = extract_key_info(safe_title, parsed if content_html else None)
+    final_info = {
+        'last_date': 'See Notification',
+        'vacancies': 'Various',
+        'exam_date': 'As per Schedule',
+        'category': 'Central Govt',
+    }
+    final_info.update(derived_info)
+    if info:
+        final_info.update({key: value for key, value in info.items() if value})
+
+    seo_html = generate_seo_post(safe_title, category, final_info, content_html or '', url)
+    state_data = infer_state_data(safe_title, content_html or '')
+    return {
+        "id": post_id,
+        "title": clean_text(safe_title),
+        "original_url": url,
+        "content_html": seo_html,
+        "source": source_label,
+        "_cat": category,
+        "states": state_data['states'],
+        "state_label": state_data['state_label'],
+        "official_state_portal": state_data['official_state_portal']
+    }
 
 
 def get_hero_image_url(category: str, title: str) -> str:
@@ -778,6 +917,271 @@ def scrape_sarkariexam(limit=None):
         scrape_listing_page(page['url'], 'SE', page['category'], res, counts, seen_urls)
     return res
 
+
+def scrape_upsc_active_exams(res: dict, counts: dict, seen_urls: set):
+    url = 'https://upsc.gov.in/examinations/active-exams'
+    print(f"\n🏛️ Scraping UPSC active examinations ({url})...")
+    try:
+        soup = request_soup(url, timeout=35)
+        view = soup.select_one('div.view-content')
+        if not view:
+            return
+
+        added = 0
+        for link in view.select('div.views-row a[href]'):
+            if added >= official_source_limit('upsc_active'):
+                break
+
+            title = normalize_spaces(link.get_text(' ', strip=True))
+            detail_url = normalize_target_url(urljoin(url, link.get('href', '')))
+            if not title or not detail_url or detail_url in seen_urls:
+                continue
+
+            detail_soup = request_soup(detail_url, timeout=35)
+            content = detail_soup.select_one('div.view-content') or detail_soup.select_one('div.region-content')
+            content_html = absolute_clean_html(content, detail_url)
+            upload_dates = [
+                normalize_spaces(node.get_text(' ', strip=True))
+                for node in (content.select('.date-display-single') if content else [])
+            ]
+            intro_html = build_official_content_html(
+                'UPSC',
+                summary_lines=[
+                    'Active examination listed directly on the official UPSC portal.',
+                    f'Latest document upload: {upload_dates[0]}' if upload_dates else 'Latest document uploads are available on the official UPSC page.',
+                ],
+                links=[
+                    ('UPSC examination page', detail_url),
+                    ('UPSC active examinations list', url),
+                ],
+                extra_html=content_html,
+            )
+            entry = create_official_entry(
+                title=title,
+                url=detail_url,
+                source_label='UPSC',
+                content_html=intro_html,
+                info={
+                    'category': 'UPSC',
+                    'exam_date': upload_dates[0] if upload_dates else 'As per UPSC schedule',
+                    'last_date': 'See UPSC notification',
+                    'vacancies': 'See UPSC notification',
+                },
+            )
+            if append_entry(res, counts, seen_urls, entry):
+                added += 1
+                time.sleep(REQUEST_DELAY_SECONDS)
+    except Exception as exc:
+        print(f"  ❌ UPSC active exams error: {exc}")
+
+
+def scrape_upsc_recruitment_ads(res: dict, counts: dict, seen_urls: set):
+    url = 'https://upsc.gov.in/recruitment/recruitment-advertisement'
+    print(f"\n🏛️ Scraping UPSC recruitment advertisements ({url})...")
+    try:
+        soup = request_soup(url, timeout=35)
+        view = soup.select_one('div.view-content')
+        if not view:
+            return
+
+        added = 0
+        for item in view.select('li'):
+            if added >= official_source_limit('upsc_recruitment'):
+                break
+
+            title_text = normalize_spaces(item.get_text(' ', strip=True))
+            title_text = re.sub(r'\(\s*\d[\d.,]*\s*(?:KB|MB)\s*\)', '', title_text, flags=re.IGNORECASE).strip()
+            pdf_link = item.find('a', href=True)
+            pdf_url = normalize_target_url(urljoin(url, pdf_link.get('href', ''))) if pdf_link else url
+            if not title_text or not pdf_url or pdf_url in seen_urls:
+                continue
+
+            title = title_text if title_text.lower().startswith('upsc') else f'UPSC {title_text}'
+            content_html = build_official_content_html(
+                'UPSC',
+                summary_lines=[
+                    'Direct recruitment advertisement published on the official UPSC portal.',
+                    title_text,
+                ],
+                links=[
+                    ('Advertisement PDF', pdf_url),
+                    ('UPSC recruitment advertisements', url),
+                ],
+            )
+            entry = create_official_entry(
+                title=title,
+                url=pdf_url,
+                source_label='UPSC',
+                content_html=content_html,
+                info={
+                    'category': 'UPSC',
+                    'last_date': 'See advertisement PDF',
+                    'vacancies': 'See advertisement PDF',
+                },
+            )
+            if append_entry(res, counts, seen_urls, entry):
+                added += 1
+    except Exception as exc:
+        print(f"  ❌ UPSC recruitment ads error: {exc}")
+
+
+def scrape_ibps_recruitments(res: dict, counts: dict, seen_urls: set):
+    url = 'https://www.ibps.in/index.php/recruitment'
+    print(f"\n🏦 Scraping IBPS recruitments ({url})...")
+    try:
+        soup = request_soup(url, timeout=35)
+        added = 0
+        for anchor in soup.select('a[href*="ibpsreg.ibps.in"]'):
+            if added >= official_source_limit('ibps_recruitment'):
+                break
+
+            href = normalize_target_url(urljoin(url, anchor.get('href', '')))
+            container = anchor.find('div', class_='detail-list') or anchor
+            org = normalize_spaces(container.select_one('.detail-first-heading').get_text(' ', strip=True) if container.select_one('.detail-first-heading') else 'IBPS')
+            role = normalize_spaces(container.select_one('.detail-second-heading').get_text(' ', strip=True) if container.select_one('.detail-second-heading') else anchor.get_text(' ', strip=True))
+            date_values = [
+                normalize_spaces(node.get_text(' ', strip=True))
+                for node in container.select('.detail-third-heading .detail-heading > div')
+            ]
+            start_date = date_values[0] if len(date_values) > 0 else ''
+            end_date = date_values[1] if len(date_values) > 1 else ''
+            title = normalize_spaces(f'{org} {role}')
+            if not title or not href or href in seen_urls or not should_keep_ibps_recruitment(org, role):
+                continue
+
+            content_html = build_official_content_html(
+                'IBPS',
+                summary_lines=[
+                    f'Organisation: {org}',
+                    f'Notification: {role}',
+                    f'Registration starts: {start_date}' if start_date else '',
+                    f'Registration ends: {end_date}' if end_date else '',
+                ],
+                links=[
+                    ('Apply / official recruitment page', href),
+                    ('IBPS ongoing recruitments', url),
+                ],
+            )
+            entry = create_official_entry(
+                title=title,
+                url=href,
+                source_label='IBPS',
+                content_html=content_html,
+                info={
+                    'category': 'IBPS',
+                    'last_date': end_date or 'See IBPS notification',
+                    'exam_date': start_date or 'As per IBPS schedule',
+                    'vacancies': 'See notification',
+                },
+            )
+            if append_entry(res, counts, seen_urls, entry):
+                added += 1
+    except Exception as exc:
+        print(f"  ❌ IBPS recruitments error: {exc}")
+
+
+def scrape_rac_recruitments(res: dict, counts: dict, seen_urls: set):
+    url = 'https://rac.gov.in/'
+    print(f"\n🧪 Scraping DRDO RAC recruitments ({url})...")
+    try:
+        soup = request_soup(url, timeout=40)
+        added = 0
+        for block in soup.select('div[data-bs-target^="#offcanvas"]'):
+            if added >= official_source_limit('rac_recruitment'):
+                break
+
+            target = (block.get('data-bs-target') or '').strip().lstrip('#')
+            offcanvas = soup.find(id=target) if target else None
+            if not offcanvas:
+                continue
+
+            adv_number = normalize_spaces(block.select_one('.advtHeading').get_text(' ', strip=True) if block.select_one('.advtHeading') else '')
+            block_text = normalize_spaces(block.get_text(' ', strip=True))
+            last_updated_match = re.search(r'Last updated:\s*(.*?)(?:Closing date:|$)', block_text, re.IGNORECASE)
+            closing_match = re.search(r'Closing date:\s*(.+)$', block_text, re.IGNORECASE)
+            summary_title = next(
+                (
+                    normalize_spaces(text)
+                    for text in block.stripped_strings
+                    if 'selection of' in text.lower() or 'scientist' in text.lower()
+                ),
+                ''
+            )
+            title = f"DRDO RAC Advertisement No. {adv_number}".strip()
+            if summary_title:
+                title = f"{title} - {summary_title}"
+            notice_cycle_text = ' '.join(
+                part for part in [
+                    title,
+                    summary_title,
+                    closing_match.group(1).strip() if closing_match else '',
+                ]
+                if part
+            )
+            if not is_current_or_future_notice(notice_cycle_text):
+                continue
+
+            official_links = []
+            primary_url = ''
+            for anchor in offcanvas.find_all('a', href=True):
+                label = normalize_spaces(anchor.get_text(' ', strip=True)) or 'Official link'
+                href = normalize_target_url(urljoin(url, anchor.get('href', '')))
+                if not href:
+                    continue
+                if not primary_url and 'advertisement' in label.lower():
+                    primary_url = href
+                official_links.append((label, href))
+            if not primary_url:
+                primary_url = url
+            if primary_url in seen_urls:
+                continue
+
+            detail_html = absolute_clean_html(offcanvas.select_one('.offcanvas-body') or offcanvas, url)
+            content_html = build_official_content_html(
+                'DRDO RAC',
+                summary_lines=[
+                    f'Advertisement number: {adv_number}' if adv_number else 'Advertisement available on the official RAC portal.',
+                    f'Last updated: {last_updated_match.group(1).strip()}' if last_updated_match else '',
+                    f'Closing date: {closing_match.group(1).strip()}' if closing_match else '',
+                    summary_title,
+                ],
+                links=official_links + [('RAC homepage', url)],
+                extra_html=detail_html,
+            )
+            entry = create_official_entry(
+                title=title,
+                url=primary_url,
+                source_label='RAC',
+                content_html=content_html,
+                info={
+                    'category': 'DRDO',
+                    'last_date': closing_match.group(1).strip() if closing_match else 'See advertisement',
+                    'exam_date': last_updated_match.group(1).strip() if last_updated_match else 'As per RAC schedule',
+                    'vacancies': 'See advertisement',
+                },
+            )
+            if append_entry(res, counts, seen_urls, entry):
+                added += 1
+                time.sleep(REQUEST_DELAY_SECONDS)
+    except Exception as exc:
+        print(f"  ❌ DRDO RAC recruitments error: {exc}")
+
+
+def scrape_official_portals(limit=None):
+    res = empty_scrape_result()
+    counts = {key: 0 for key in res}
+    seen_urls = set()
+
+    for scraper_func in [
+        scrape_upsc_active_exams,
+        scrape_upsc_recruitment_ads,
+        scrape_ibps_recruitments,
+        scrape_rac_recruitments,
+    ]:
+        scraper_func(res, counts, seen_urls)
+
+    return res
+
 def main():
     started_at = utc_now_iso()
     scrape_status = {
@@ -786,7 +1190,7 @@ def main():
         'finished_at': None,
         'duration_seconds': None,
         'counts': {},
-        'sources': ['sarkariresult', 'freejobalert', 'sarkariexam'],
+        'sources': ['sarkariresult', 'freejobalert', 'sarkariexam', 'official_portals'],
         'error': None
     }
     write_json_atomic(SCRAPE_STATUS_FILE, scrape_status)
@@ -794,7 +1198,7 @@ def main():
     started_ts = time.time()
     try:
         all_data = {'status': 'success', 'results': [], 'admit_cards': [], 'latest_jobs': [], 'answer_keys': []}
-        for scraper_func in [scrape_sarkariresult, scrape_freejobalert, scrape_sarkariexam]:
+        for scraper_func in [scrape_sarkariresult, scrape_freejobalert, scrape_sarkariexam, scrape_official_portals]:
             site_data = scraper_func()
             for cat in CATEGORIES:
                 all_data[cat].extend(site_data.get(cat, []))
