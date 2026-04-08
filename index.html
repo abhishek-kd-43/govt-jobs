@@ -448,7 +448,7 @@ footer { background: var(--dark); color: #94A3B8; margin-top: 16px; }
       <a href="#">Privacy Policy</a>
     </div>
     <div class="topbar-right">
-      <span style="font-size:12px;color:#64748B;">03 Jan 2026 | Sunday</span>
+      <span style="font-size:12px;color:#64748B;" id="topbar-date">Loading...</span>
       <span class="topbar-badge">LIVE</span>
     </div>
   </div>
@@ -478,36 +478,9 @@ footer { background: var(--dark); color: #94A3B8; margin-top: 16px; }
             <a href="statejobs.html?state=Central+Govt" class="sp-btn sp-central">Central Govt</a>
           </div>
           <div class="sp-section-label">States</div>
-          <div class="sp-grid">
-            <a href="statejobs.html?state=Andhra+Pradesh" class="sp-btn">Andhra Pradesh</a>
-            <a href="statejobs.html?state=Assam" class="sp-btn">Assam</a>
-            <a href="statejobs.html?state=Bihar" class="sp-btn">Bihar</a>
-            <a href="statejobs.html?state=Chhattisgarh" class="sp-btn">Chhattisgarh</a>
-            <a href="statejobs.html?state=Delhi" class="sp-btn">Delhi</a>
-            <a href="statejobs.html?state=Gujarat" class="sp-btn">Gujarat</a>
-            <a href="statejobs.html?state=Haryana" class="sp-btn">Haryana</a>
-            <a href="statejobs.html?state=Himachal+Pradesh" class="sp-btn">Himachal Pradesh</a>
-            <a href="statejobs.html?state=Jharkhand" class="sp-btn">Jharkhand</a>
-            <a href="statejobs.html?state=Karnataka" class="sp-btn">Karnataka</a>
-            <a href="statejobs.html?state=Kerala" class="sp-btn">Kerala</a>
-            <a href="statejobs.html?state=Madhya+Pradesh" class="sp-btn">Madhya Pradesh</a>
-            <a href="statejobs.html?state=Maharashtra" class="sp-btn">Maharashtra</a>
-            <a href="statejobs.html?state=Odisha" class="sp-btn">Odisha</a>
-            <a href="statejobs.html?state=Punjab" class="sp-btn">Punjab</a>
-            <a href="statejobs.html?state=Rajasthan" class="sp-btn">Rajasthan</a>
-            <a href="statejobs.html?state=Tamil+Nadu" class="sp-btn">Tamil Nadu</a>
-            <a href="statejobs.html?state=Telangana" class="sp-btn">Telangana</a>
-            <a href="statejobs.html?state=Uttar+Pradesh" class="sp-btn">Uttar Pradesh</a>
-            <a href="statejobs.html?state=Uttarakhand" class="sp-btn">Uttarakhand</a>
-            <a href="statejobs.html?state=West+Bengal" class="sp-btn">West Bengal</a>
-          </div>
+          <div class="sp-grid" id="desktop-state-grid"></div>
           <div class="sp-section-label">Union Territories</div>
-          <div class="sp-grid">
-            <a href="statejobs.html?state=Jammu+%26+Kashmir" class="sp-btn sp-ut">J&amp;K</a>
-            <a href="statejobs.html?state=Ladakh" class="sp-btn sp-ut">Ladakh</a>
-            <a href="statejobs.html?state=Chandigarh" class="sp-btn sp-ut">Chandigarh</a>
-            <a href="statejobs.html?state=Puducherry" class="sp-btn sp-ut">Puducherry</a>
-          </div>
+          <div class="sp-grid" id="desktop-ut-grid"></div>
         </div>
       </div>
       <a href="index.html" class="active">Home</a>
@@ -601,17 +574,8 @@ footer { background: var(--dark); color: #94A3B8; margin-top: 16px; }
     <div class="mm-states-title">🗺️ Browse by State</div>
     <div class="mm-states-grid">
       <a href="statejobs.html" class="mm-state-chip central" onclick="closeMobileMenu()">All India</a>
-      <a href="statejobs.html?state=Uttar+Pradesh" class="mm-state-chip" onclick="closeMobileMenu()">Uttar Pradesh</a>
-      <a href="statejobs.html?state=Bihar" class="mm-state-chip" onclick="closeMobileMenu()">Bihar</a>
-      <a href="statejobs.html?state=Rajasthan" class="mm-state-chip" onclick="closeMobileMenu()">Rajasthan</a>
-      <a href="statejobs.html?state=Maharashtra" class="mm-state-chip" onclick="closeMobileMenu()">Maharashtra</a>
-      <a href="statejobs.html?state=Delhi" class="mm-state-chip" onclick="closeMobileMenu()">Delhi</a>
-      <a href="statejobs.html?state=Gujarat" class="mm-state-chip" onclick="closeMobileMenu()">Gujarat</a>
-      <a href="statejobs.html?state=Madhya+Pradesh" class="mm-state-chip" onclick="closeMobileMenu()">Madhya Pradesh</a>
-      <a href="statejobs.html?state=Karnataka" class="mm-state-chip" onclick="closeMobileMenu()">Karnataka</a>
-      <a href="statejobs.html?state=Tamil+Nadu" class="mm-state-chip" onclick="closeMobileMenu()">Tamil Nadu</a>
-      <a href="statejobs.html?state=West+Bengal" class="mm-state-chip" onclick="closeMobileMenu()">West Bengal</a>
-      <a href="statejobs.html?state=Haryana" class="mm-state-chip" onclick="closeMobileMenu()">Haryana</a>
+      <a href="statejobs.html?state=Central+Govt" class="mm-state-chip central" onclick="closeMobileMenu()">Central Govt</a>
+      <div id="mobile-state-grid" style="display:contents;"></div>
     </div>
   </div>
   <div style="height:16px;"></div>
@@ -687,8 +651,8 @@ footer { background: var(--dark); color: #94A3B8; margin-top: 16px; }
         </span>
         <span class="card-badge badge-green">NEW</span>
       </div>
-      <div class="card-body">
-        <a class="entry" href="#"><span class="entry-dot" style="background:var(--green);"></span><div><div class="entry-text">Army Agniveer Rally 2026 Online Form</div><span class="tag-new">NEW</span></div></a>
+      <div class="card-body" id="live-latest-jobs">
+        <a class="entry" href="#"><span class="entry-dot" style="background:var(--green);"></span><div><div class="entry-text">Loading latest jobs...</div></div></a>
         <a class="entry" href="#"><span class="entry-dot" style="background:var(--green);"></span><div><div class="entry-text">UPSSSC Assistant Statistical Officer 2026</div></div></a>
         <a class="entry" href="#"><span class="entry-dot" style="background:var(--green);"></span><div><div class="entry-text">SSB Constable / HC / ASI / SI 2026</div><span class="tag-new">NEW</span></div></a>
         <a class="entry" href="#"><span class="entry-dot" style="background:var(--green);"></span><div><div class="entry-text">UPTET 2026 Online Form</div></div></a>
@@ -754,8 +718,8 @@ footer { background: var(--dark); color: #94A3B8; margin-top: 16px; }
         </span>
         <span class="card-badge badge-purple">OUT</span>
       </div>
-      <div class="card-body">
-        <a class="entry" href="#"><span class="entry-dot" style="background:var(--purple);"></span><div><div class="entry-text">NTA CUET PG 2026 Admit Card</div><span class="tag-new">NEW</span></div></a>
+      <div class="card-body" id="live-admit-cards">
+        <a class="entry" href="#"><span class="entry-dot" style="background:var(--purple);"></span><div><div class="entry-text">Loading admit cards...</div></div></a>
         <a class="entry" href="#"><span class="entry-dot" style="background:var(--purple);"></span><div><div class="entry-text">DRDO CEPTAM 11 Admit Card 2026</div></div></a>
         <a class="entry" href="#"><span class="entry-dot" style="background:var(--purple);"></span><div><div class="entry-text">UP Police Sub Inspector SI 2026</div></div></a>
         <a class="entry" href="#"><span class="entry-dot" style="background:var(--purple);"></span><div><div class="entry-text">RRB NTPC Graduate Level Admit Card</div><span class="tag-hot">HOT</span></div></a>
@@ -766,7 +730,7 @@ footer { background: var(--dark); color: #94A3B8; margin-top: 16px; }
         <a class="entry" href="#"><span class="entry-dot" style="background:var(--purple);"></span><div><div class="entry-text">EMRS Teaching / Non-Teaching Tier II</div></div></a>
         <a class="entry" href="#"><span class="entry-dot" style="background:var(--purple);"></span><div><div class="entry-text">NCERT Group A, B, C Admit Card 2026</div></div></a>
       </div>
-      <div style="padding:10px 16px;border-top:1px solid var(--border);"><a href="#" class="sec-more">View All Admit Cards →</a></div>
+      <div style="padding:10px 16px;border-top:1px solid var(--border);"><a href="admitcard.html" class="sec-more">View All Admit Cards →</a></div>
     </div>
 
     <!-- ANSWER KEY + SYLLABUS -->
@@ -774,18 +738,18 @@ footer { background: var(--dark); color: #94A3B8; margin-top: 16px; }
       <div class="card">
         <div class="card-hdr">
           <span class="card-title" style="color:var(--red);">
-            <span class="sec-dot" style="background:var(--red);"></span>Answer Key
+            <span class="sec-dot" style="background:var(--red);"></span>Live Results
           </span>
-          <span class="card-badge badge-red">HOT</span>
+          <span class="card-badge badge-red">LIVE</span>
         </div>
-        <div class="card-body">
-          <a class="entry" href="#"><span class="entry-dot" style="background:var(--red);"></span><div><div class="entry-text">Railway RRB ALP CEN 01/2025 Answer Key</div><span class="tag-new">NEW</span></div></a>
+        <div class="card-body" id="live-results">
+          <a class="entry" href="#"><span class="entry-dot" style="background:var(--red);"></span><div><div class="entry-text">Loading results...</div></div></a>
           <a class="entry" href="#"><span class="entry-dot" style="background:var(--red);"></span><div><div class="entry-text">CTET February 2026 Answer Key</div></div></a>
           <a class="entry" href="#"><span class="entry-dot" style="background:var(--red);"></span><div><div class="entry-text">SSC Selection Post 13th Final Key</div></div></a>
           <a class="entry" href="#"><span class="entry-dot" style="background:var(--red);"></span><div><div class="entry-text">RRB Paramedical CEN 05/2025 Key</div></div></a>
           <a class="entry" href="#"><span class="entry-dot" style="background:var(--red);"></span><div><div class="entry-text">BPSC Special School Teacher Final Key</div></div></a>
         </div>
-        <div style="padding:10px 16px;border-top:1px solid var(--border);"><a href="#" class="sec-more">View All Answer Keys →</a></div>
+        <div style="padding:10px 16px;border-top:1px solid var(--border);"><a href="answerkey.html" class="sec-more">View All Answer Keys →</a></div>
       </div>
       <div class="card">
         <div class="card-hdr">
@@ -800,7 +764,7 @@ footer { background: var(--dark); color: #94A3B8; margin-top: 16px; }
           <a class="entry" href="#"><span class="entry-dot" style="background:var(--accent);"></span><div><div class="entry-text">DRDO CEPTAM 11 Exam Syllabus</div></div></a>
           <a class="entry" href="#"><span class="entry-dot" style="background:var(--accent);"></span><div><div class="entry-text">UPTET 2026 Detailed Syllabus</div></div></a>
         </div>
-        <div style="padding:10px 16px;border-top:1px solid var(--border);"><a href="#" class="sec-more">View All Syllabus →</a></div>
+        <div style="padding:10px 16px;border-top:1px solid var(--border);"><a href="syllabus.html" class="sec-more">View All Syllabus →</a></div>
       </div>
     </div>
   </div>
@@ -827,8 +791,8 @@ footer { background: var(--dark); color: #94A3B8; margin-top: 16px; }
         <span class="mock-feat"><span class="mock-feat-dot"></span>Topic-wise Practice</span>
       </div>
       <div class="mock-btns">
-        <a href="#" class="btn-primary">Start Free Mock Test</a>
-        <a href="#" class="btn-outline">View Leaderboard</a>
+        <a href="mocktest.html" class="btn-primary">Start Free Mock Test</a>
+        <a href="mocktest.html#leaderboard" class="btn-outline">View Leaderboard</a>
       </div>
     </div>
     <div class="mock-leaderboard">
@@ -844,12 +808,12 @@ footer { background: var(--dark); color: #94A3B8; margin-top: 16px; }
   <!-- QUICK CATEGORIES -->
   <div class="sec-hdr"><span class="sec-title">Browse by Category</span></div>
   <div class="cats-grid">
-    <a href="#" class="cat-card"><div class="cat-card-icon" style="background:#EFF6FF;"><svg width="22" height="22" fill="#1D4ED8" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><div class="cat-card-label">UPSC</div><div class="cat-card-count">48 active</div></a>
-    <a href="#" class="cat-card"><div class="cat-card-icon" style="background:#FFF3EB;"><svg width="22" height="22" fill="#E85D04" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke="#E85D04" stroke-width="2" fill="none"/></svg></div><div class="cat-card-label">SSC</div><div class="cat-card-count">120 active</div></a>
-    <a href="#" class="cat-card"><div class="cat-card-icon" style="background:#ECFDF5;"><svg width="22" height="22" fill="#059669" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke="#059669" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div><div class="cat-card-label">Railway</div><div class="cat-card-count">200 active</div></a>
-    <a href="#" class="cat-card"><div class="cat-card-icon" style="background:#F5F3FF;"><svg width="22" height="22" fill="#7C3AED" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="11" rx="2" stroke="#7C3AED" stroke-width="2" fill="none"/><path d="M7 8V6a5 5 0 0110 0v2" stroke="#7C3AED" stroke-width="2" fill="none"/></svg></div><div class="cat-card-label">Banking</div><div class="cat-card-count">85 active</div></a>
-    <a href="#" class="cat-card"><div class="cat-card-icon" style="background:#FEF2F2;"><svg width="22" height="22" fill="#DC2626" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#DC2626" stroke-width="2" fill="none"/></svg></div><div class="cat-card-label">Defence</div><div class="cat-card-count">60 active</div></a>
-    <a href="#" class="cat-card"><div class="cat-card-icon" style="background:#F0FDF4;"><svg width="22" height="22" fill="#16A34A" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#16A34A" stroke-width="2" fill="none"/><polyline points="9 22 9 12 15 12 15 22" stroke="#16A34A" stroke-width="2" fill="none"/></svg></div><div class="cat-card-label">State PSC</div><div class="cat-card-count">340 active</div></a>
+    <a href="latestjobs.html?cat=UPSC" class="cat-card"><div class="cat-card-icon" style="background:#EFF6FF;"><svg width="22" height="22" fill="#1D4ED8" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><div class="cat-card-label">UPSC</div><div class="cat-card-count">48 active</div></a>
+    <a href="latestjobs.html?cat=SSC" class="cat-card"><div class="cat-card-icon" style="background:#FFF3EB;"><svg width="22" height="22" fill="#E85D04" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke="#E85D04" stroke-width="2" fill="none"/></svg></div><div class="cat-card-label">SSC</div><div class="cat-card-count">120 active</div></a>
+    <a href="latestjobs.html?cat=Railway" class="cat-card"><div class="cat-card-icon" style="background:#ECFDF5;"><svg width="22" height="22" fill="#059669" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke="#059669" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div><div class="cat-card-label">Railway</div><div class="cat-card-count">200 active</div></a>
+    <a href="latestjobs.html?cat=Banking" class="cat-card"><div class="cat-card-icon" style="background:#F5F3FF;"><svg width="22" height="22" fill="#7C3AED" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="11" rx="2" stroke="#7C3AED" stroke-width="2" fill="none"/><path d="M7 8V6a5 5 0 0110 0v2" stroke="#7C3AED" stroke-width="2" fill="none"/></svg></div><div class="cat-card-label">Banking</div><div class="cat-card-count">85 active</div></a>
+    <a href="latestjobs.html?cat=Defence" class="cat-card"><div class="cat-card-icon" style="background:#FEF2F2;"><svg width="22" height="22" fill="#DC2626" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#DC2626" stroke-width="2" fill="none"/></svg></div><div class="cat-card-label">Defence</div><div class="cat-card-count">60 active</div></a>
+    <a href="latestjobs.html?cat=State+PSC" class="cat-card"><div class="cat-card-icon" style="background:#F0FDF4;"><svg width="22" height="22" fill="#16A34A" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#16A34A" stroke-width="2" fill="none"/><polyline points="9 22 9 12 15 12 15 22" stroke="#16A34A" stroke-width="2" fill="none"/></svg></div><div class="cat-card-label">State PSC</div><div class="cat-card-count">340 active</div></a>
   </div>
 
   <hr class="divider" />
@@ -899,12 +863,12 @@ footer { background: var(--dark); color: #94A3B8; margin-top: 16px; }
       <h4>Quick Links</h4>
       <ul>
         <li><a href="latestjobs.html">Latest Jobs</a></li>
-        <li><a href="#">Results</a></li>
-        <li><a href="#">Admit Card</a></li>
-        <li><a href="#">Answer Key</a></li>
+        <li><a href="results.html">Results</a></li>
+        <li><a href="admitcard.html">Admit Card</a></li>
+        <li><a href="answerkey.html">Answer Key</a></li>
         <li><a href="syllabus.html">Syllabus</a></li>
-        <li><a href="#">Admissions</a></li>
-        <li><a href="#">Certificate Verify</a></li>
+        <li><a href="auth.html">My Dashboard</a></li>
+        <li><a href="mocktest.html">Mock Tests</a></li>
         <li><a href="tools.html">Free Tools</a></li>
         <li><a href="age-calculator.html">Age Calculator</a></li>
       </ul>
@@ -912,25 +876,25 @@ footer { background: var(--dark); color: #94A3B8; margin-top: 16px; }
     <div class="footer-col">
       <h4>Mock Tests</h4>
       <ul>
-        <li><a href="#">UPSC Mock Test</a></li>
-        <li><a href="#">SSC Mock Test</a></li>
-        <li><a href="#">Railway Mock Test</a></li>
-        <li><a href="#">Banking Mock Test</a></li>
-        <li><a href="#">Defence Mock Test</a></li>
-        <li><a href="#">Live Leaderboard</a></li>
-        <li><a href="#">My Scores</a></li>
+        <li><a href="mocktest.html?exam=upsc">UPSC Mock Test</a></li>
+        <li><a href="mocktest.html?exam=ssc">SSC Mock Test</a></li>
+        <li><a href="mocktest.html?exam=railway">Railway Mock Test</a></li>
+        <li><a href="mocktest.html?exam=banking">Banking Mock Test</a></li>
+        <li><a href="mocktest.html?exam=defence">Defence Mock Test</a></li>
+        <li><a href="mocktest.html#leaderboard">Live Leaderboard</a></li>
+        <li><a href="auth.html">My Scores</a></li>
       </ul>
     </div>
     <div class="footer-col">
       <h4>Top Exams</h4>
       <ul>
-        <li><a href="#">UPSC CSE 2026</a></li>
-        <li><a href="#">SSC CGL 2026</a></li>
-        <li><a href="#">RRB NTPC 2026</a></li>
-        <li><a href="#">SBI PO 2026</a></li>
-        <li><a href="#">IBPS PO 2026</a></li>
-        <li><a href="#">NDA 2026</a></li>
-        <li><a href="#">BPSC 2026</a></li>
+        <li><a href="latestjobs.html?cat=UPSC">UPSC CSE 2026</a></li>
+        <li><a href="latestjobs.html?cat=SSC">SSC CGL 2026</a></li>
+        <li><a href="latestjobs.html?cat=Railway">RRB NTPC 2026</a></li>
+        <li><a href="latestjobs.html?cat=Banking">SBI PO 2026</a></li>
+        <li><a href="latestjobs.html?cat=Banking">IBPS PO 2026</a></li>
+        <li><a href="latestjobs.html?cat=Defence">NDA 2026</a></li>
+        <li><a href="latestjobs.html?cat=State+PSC">BPSC 2026</a></li>
       </ul>
     </div>
   </div>
@@ -970,7 +934,19 @@ footer { background: var(--dark); color: #94A3B8; margin-top: 16px; }
 @keyframes slideUp { from{opacity:0;transform:translateY(30px) scale(.96)} to{opacity:1;transform:translateY(0) scale(1)} }
 </style>
 
+<script src="stateMeta.js"></script>
 <script>
+/* ── DYNAMIC DATE in topbar ── */
+(function() {
+  var el = document.getElementById('topbar-date');
+  if (el) {
+    var d = new Date();
+    var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    el.textContent = ('0'+d.getDate()).slice(-2) + ' ' + months[d.getMonth()] + ' ' + d.getFullYear() + ' | ' + days[d.getDay()];
+  }
+})();
+
 /* ── TICKER ── */
 const track = document.getElementById('tickerTrack');
 if (track) {
@@ -1012,6 +988,44 @@ document.addEventListener('click', function(e) {
   var w = document.getElementById('states-wrap');
   if (w && !w.contains(e.target)) closeStates();
 });
+
+function buildStateHref(name) {
+  return 'statejobs.html?state=' + encodeURIComponent(name).replace(/%20/g, '+');
+}
+
+function renderStateMenus() {
+  loadOnlyJobsStateMeta().then(function(entries) {
+    var desktopStates = document.getElementById('desktop-state-grid');
+    var desktopUts = document.getElementById('desktop-ut-grid');
+    var mobileStates = document.getElementById('mobile-state-grid');
+    if (!desktopStates || !desktopUts || !mobileStates) return;
+
+    desktopStates.innerHTML = '';
+    desktopUts.innerHTML = '';
+    mobileStates.innerHTML = '';
+
+    entries.forEach(function(entry) {
+      if (entry.type === 'central') return;
+
+      var desktopLink = document.createElement('a');
+      desktopLink.href = buildStateHref(entry.name);
+      desktopLink.className = 'sp-btn' + (entry.type === 'ut' ? ' sp-ut' : '');
+      desktopLink.textContent = entry.name === 'Jammu and Kashmir' ? 'J&K' : entry.name;
+
+      var mobileLink = document.createElement('a');
+      mobileLink.href = buildStateHref(entry.name);
+      mobileLink.className = 'mm-state-chip';
+      mobileLink.textContent = entry.name === 'Jammu and Kashmir' ? 'J&K' : entry.name;
+      mobileLink.setAttribute('onclick', 'closeMobileMenu()');
+
+      if (entry.type === 'ut') desktopUts.appendChild(desktopLink);
+      else desktopStates.appendChild(desktopLink);
+      mobileStates.appendChild(mobileLink);
+    });
+  });
+}
+
+renderStateMenus();
 
 /* ── MOBILE MENU ── */
 function toggleMobileMenu() {
@@ -1065,5 +1079,6 @@ window.addEventListener('appinstalled', function() {
 });
 </script>
 
+<script src="renderData.js"></script>
 </body>
 </html>

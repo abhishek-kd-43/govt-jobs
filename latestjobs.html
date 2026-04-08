@@ -149,7 +149,7 @@ footer{background:var(--dk);color:#64748B;padding:16px 20px;}
 <div style="background:#1A1A2E;padding:6px 0;font-size:12px;">
   <div style="max-width:1280px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;align-items:center;">
     <div style="display:flex;gap:14px;"><a href="#" style="color:#CBD5E1;text-decoration:none;">Home</a><a href="#" style="color:#CBD5E1;text-decoration:none;">About</a><a href="#" style="color:#CBD5E1;text-decoration:none;">Contact</a></div>
-    <div style="display:flex;gap:10px;align-items:center;"><span style="color:#475569;">Mon, 23 Mar 2026</span><span style="background:#E85D04;color:#fff;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;">LIVE</span></div>
+    <div style="display:flex;gap:10px;align-items:center;"><span style="color:#475569;" id="lj-topbar-date">Loading...</span><span style="background:#E85D04;color:#fff;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;">LIVE</span></div>
   </div>
 </div>
 
@@ -203,14 +203,14 @@ footer{background:var(--dk);color:#64748B;padding:16px 20px;}
   </div>
 </div>
 
-<div class="bc"><a href="index.html">Home</a> &rsaquo; <span style="color:#2D2D3A;font-weight:600;">Latest Government Jobs 2026</span></div>
+<div class="bc"><a href="index.html">Home</a> &rsaquo; <span style="color:#2D2D3A;font-weight:600;" id="bc-label">Latest Government Jobs 2026</span></div>
 
 <div class="pg">
   <div>
     <div class="hero">
-      <div class="hero-tag">Updated Daily from Official Sources</div>
-      <div class="hero-h">Latest Govt Jobs <span>2026</span></div>
-      <div class="hero-sub">Sarkari Naukri &ndash; SSC, Railway, Banking, UPSC, Defence, State PSC &amp; more</div>
+      <div class="hero-tag" id="hero-tag">Updated Daily from Official Sources</div>
+      <div class="hero-h" id="hero-title">Latest Govt Jobs <span>2026</span></div>
+      <div class="hero-sub" id="hero-sub">Sarkari Naukri &ndash; SSC, Railway, Banking, UPSC, Defence, State PSC &amp; more</div>
       <div class="hero-stats">
         <div><div class="hs-n" id="tot-ct">60</div><div class="hs-l">Active Jobs</div></div>
         <div><div class="hs-n">1,20,000+</div><div class="hs-l">Total Vacancies</div></div>
@@ -295,10 +295,10 @@ footer{background:var(--dk);color:#64748B;padding:16px 20px;}
     <div class="sc">
       <div class="sc-h"><span style="font-size:15px;">🔗</span> Quick Links</div>
       <div class="ql">
-        <a class="qi" href="#"><span class="qi-n" style="font-size:13px;">📄 Results 2026</span></a>
-        <a class="qi" href="#"><span class="qi-n" style="font-size:13px;">🪪 Admit Card</span></a>
-        <a class="qi" href="#"><span class="qi-n" style="font-size:13px;">🔑 Answer Key</span></a>
-        <a class="qi" href="#"><span class="qi-n" style="font-size:13px;">📘 Syllabus</span></a>
+        <a class="qi" href="results.html"><span class="qi-n" style="font-size:13px;">📄 Results 2026</span></a>
+        <a class="qi" href="admitcard.html"><span class="qi-n" style="font-size:13px;">🪪 Admit Card</span></a>
+        <a class="qi" href="answerkey.html"><span class="qi-n" style="font-size:13px;">🔑 Answer Key</span></a>
+        <a class="qi" href="syllabus.html"><span class="qi-n" style="font-size:13px;">📘 Syllabus</span></a>
         <a class="qi" href="mocktest.html"><span class="qi-n" style="font-size:13px;">📝 Mock Test</span></a>
         <a class="qi" href="auth.html"><span class="qi-n" style="font-size:13px;">👤 My Dashboard</span></a>
       </div>
@@ -308,6 +308,7 @@ footer{background:var(--dk);color:#64748B;padding:16px 20px;}
 
 <footer><div class="ft-in"><span>2026 OnlyJobs &middot; All info from official sites. Verify before applying.</span><div><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a></div></div></footer>
 
+<script src="stateMeta.js"></script>
 <script>
 var JOBS = [
 {id:1,t:'SSC CGL 2026 Combined Graduate Level Online Form',org:'Staff Selection Commission (SSC)',cat:'SSC',st:'Central Govt',edu:'Graduate',ico:'📋',vac:17727,as:'01 Feb 2026',ld:'25 Apr 2026',ed:'Jun-Jul 2026',fee:'Rs.100 Gen/OBC Free SC/ST/Female',sal:'Rs.25500-1,00,000',badge:'hot',url:'https://ssc.nic.in'},
@@ -375,6 +376,7 @@ var JOBS = [
 var filtered = JOBS.slice();
 var curFilter = 'all';
 var curSearch = '';
+var curState = '';
 var curPage = 1;
 var PER = 15;
 
@@ -388,7 +390,14 @@ function renderJobs() {
   document.getElementById('tot-ct').textContent = filtered.length;
 
   if (!slice.length) {
-    list.innerHTML = '<div class="no-r"><h3>No jobs found</h3><p>Try a different filter or search.</p></div>';
+    var helper = '<p>Try a different filter or search.</p>';
+    if (curState) {
+      helper = '<p>No tagged jobs are available for ' + curState + ' right now in OnlyJobs.</p>';
+      if (window.ONLYJOBS_STATE_INDEX && window.ONLYJOBS_STATE_INDEX[curState] && window.ONLYJOBS_STATE_INDEX[curState].portalUrl) {
+        helper += '<p style="margin-top:12px;"><a class="btn-a" href="' + window.ONLYJOBS_STATE_INDEX[curState].portalUrl + '" target="_blank" rel="noopener">Open official ' + curState + ' portal</a></p>';
+      }
+    }
+    list.innerHTML = '<div class="no-r"><h3>No jobs found</h3>' + helper + '</div>';
     document.getElementById('pag').innerHTML = '';
     return;
   }
@@ -467,6 +476,45 @@ function setFilter(cat, el) {
   applyAll();
 }
 
+function normalizeStateLabel(state) {
+  return (state || '').replace(/\+/g, ' ').trim().toLowerCase();
+}
+
+function stateMatches(jobState, selectedState) {
+  var normalizedSelected = normalizeStateLabel(selectedState);
+  var normalizedJobState = normalizeStateLabel(jobState);
+  var genericStates = ['all india', 'all states', 'central govt', 'all india tribal areas'];
+
+  if (!normalizedSelected || normalizedSelected === 'all india') return true;
+  if (normalizedSelected === 'central govt') return genericStates.indexOf(normalizedJobState) > -1;
+  if (genericStates.indexOf(normalizedJobState) > -1) return true;
+  if (normalizedJobState === normalizedSelected) return true;
+  if (normalizedJobState.indexOf(normalizedSelected) > -1) return true;
+  return false;
+}
+
+function updateStatePageMeta() {
+  var bc = document.getElementById('bc-label');
+  var heroTag = document.getElementById('hero-tag');
+  var heroTitle = document.getElementById('hero-title');
+  var heroSub = document.getElementById('hero-sub');
+
+  if (!curState || normalizeStateLabel(curState) === 'all india') {
+    if (bc) bc.textContent = 'Latest Government Jobs 2026';
+    if (heroTag) heroTag.textContent = 'Updated Daily from Official Sources';
+    if (heroTitle) heroTitle.innerHTML = 'Latest Govt Jobs <span>2026</span>';
+    if (heroSub) heroSub.innerHTML = 'Sarkari Naukri &ndash; SSC, Railway, Banking, UPSC, Defence, State PSC &amp; more';
+    document.title = 'Latest Govt Jobs 2026 - OnlyJobs | Sarkari Naukri';
+    return;
+  }
+
+  if (bc) bc.textContent = curState + ' Govt Jobs 2026';
+  if (heroTag) heroTag.textContent = 'State-wise government jobs';
+  if (heroTitle) heroTitle.innerHTML = curState + ' Govt Jobs <span>2026</span>';
+  if (heroSub) heroSub.textContent = 'Latest openings, recruitments, admit cards and public sector opportunities relevant to ' + curState + '.';
+  document.title = curState + ' Govt Jobs 2026 - OnlyJobs';
+}
+
 function doSearch(q) {
   curSearch = q.toLowerCase(); curPage = 1;
   document.getElementById('nsrch').value = q;
@@ -484,7 +532,8 @@ function applyAll() {
   filtered = JOBS.filter(function(j) {
     var cm = curFilter === 'all' || j.cat === curFilter;
     var sm = !curSearch || j.t.toLowerCase().indexOf(curSearch) > -1 || j.org.toLowerCase().indexOf(curSearch) > -1 || j.st.toLowerCase().indexOf(curSearch) > -1 || j.cat.toLowerCase().indexOf(curSearch) > -1;
-    return cm && sm;
+    var stm = stateMatches(j.st, curState);
+    return cm && sm && stm;
   });
   renderJobs();
 }
@@ -496,7 +545,43 @@ function subscribe() {
   document.getElementById('ne').value = '';
 }
 
+loadOnlyJobsStateMeta();
 renderJobs();
+
+// Auto-filter from URL params (e.g. ?cat=SSC or ?search=railway)
+(function() {
+  var d = new Date();
+  var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var dateEl = document.getElementById('lj-topbar-date');
+  if (dateEl) dateEl.textContent = days[d.getDay()] + ', ' + ('0'+d.getDate()).slice(-2) + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+
+  var params = new URLSearchParams(window.location.search);
+  var cat = params.get('cat');
+  var state = params.get('state');
+  var search = params.get('search') || params.get('q');
+  if (state) {
+    curState = state;
+    updateStatePageMeta();
+  } else {
+    updateStatePageMeta();
+  }
+  if (cat) {
+    var chips = document.querySelectorAll('.chip');
+    chips.forEach(function(c) { c.classList.remove('on'); });
+    var targetChip = null;
+    chips.forEach(function(c) {
+      if (c.textContent.trim() === cat || c.getAttribute('onclick') && c.getAttribute('onclick').indexOf("'" + cat + "'") > -1) {
+        targetChip = c;
+      }
+    });
+    if (targetChip) { targetChip.classList.add('on'); }
+    setFilter(cat, null);
+  }
+  if (search) { doSearch(search); }
+  else if (state) { applyAll(); }
+})();
 </script>
+<script src="renderData.js"></script>
 </body>
 </html>
