@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '45 2 * * *'
+    - cron: '45 14 * * *'
 
 permissions:
   contents: write
@@ -17,6 +18,14 @@ concurrency:
 jobs:
   scrape-and-build:
     runs-on: ubuntu-latest
+    env:
+      ONLYJOBS_LIMIT_LATEST_JOBS: '48'
+      ONLYJOBS_LIMIT_RESULTS: '24'
+      ONLYJOBS_LIMIT_ADMIT_CARDS: '24'
+      ONLYJOBS_LIMIT_ANSWER_KEYS: '20'
+      ONLYJOBS_LISTING_PAGE_LIMIT: '12'
+      ONLYJOBS_FJA_STATE_PAGE_LIMIT: '1'
+      ONLYJOBS_REQUEST_DELAY_SECONDS: '0.1'
 
     steps:
       - name: Check out repository

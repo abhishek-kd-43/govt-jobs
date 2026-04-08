@@ -13,6 +13,7 @@ Static OnlyJobs site with a local Python scraper, a lightweight local server, an
 This repo now includes a scheduled workflow at `.github/workflows/daily-scrape-pages.yml`.
 
 - It runs the scraper every day at `02:45 UTC` which is `08:15 IST`.
+- It also runs again at `14:45 UTC` which is `20:15 IST`.
 - It also supports manual runs from the GitHub Actions tab with `workflow_dispatch`.
 - After scraping, it updates `data.json`, pushes that change to the repo, and deploys the static site to GitHub Pages.
 

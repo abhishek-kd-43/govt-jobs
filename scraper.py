@@ -9,6 +9,7 @@ import random
 import traceback
 from datetime import date
 from datetime import datetime, timezone
+from urllib.parse import urljoin, urlparse, urldefrag
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -99,6 +100,211 @@ ALL_INDIA_PATTERNS = [
         r'\bpan india\b', r'\bacross india\b'
     ]
 ]
+
+CATEGORIES = ('results', 'admit_cards', 'latest_jobs', 'answer_keys')
+CATEGORY_LIMITS = {
+    'latest_jobs': int(os.getenv('ONLYJOBS_LIMIT_LATEST_JOBS', '36')),
+    'results': int(os.getenv('ONLYJOBS_LIMIT_RESULTS', '20')),
+    'admit_cards': int(os.getenv('ONLYJOBS_LIMIT_ADMIT_CARDS', '20')),
+    'answer_keys': int(os.getenv('ONLYJOBS_LIMIT_ANSWER_KEYS', '18')),
+}
+LISTING_PAGE_LIMIT = int(os.getenv('ONLYJOBS_LISTING_PAGE_LIMIT', '10'))
+FJA_STATE_PAGE_LIMIT = int(os.getenv('ONLYJOBS_FJA_STATE_PAGE_LIMIT', '1'))
+REQUEST_DELAY_SECONDS = float(os.getenv('ONLYJOBS_REQUEST_DELAY_SECONDS', '0.15'))
+CURRENT_YEAR_PATTERN = re.compile(r'\b20(2[4-9]|3\d)\b')
+CONTENT_SIGNAL_TERMS = {
+    'latest_jobs': [
+        'online form', 'apply online', 'recruitment', 'vacancy', 'vacancies',
+        'notification', 'jobs', 'job', 'bharti', 'post', 'posts', 'walk in'
+    ],
+    'results': ['result', 'results', 'score', 'score card', 'merit', 'selection', 'cut off'],
+    'admit_cards': ['admit', 'exam city', 'hall ticket', 'call letter', 'schedule', 'city intimation'],
+    'answer_keys': ['answer key', 'response sheet', 'objection', 'provisional key', 'final key'],
+}
+COMMON_SKIP_TITLES = {
+    'home', 'view more', 'search', 'contact us', 'important', 'syllabus', 'notifications',
+    'latest notifications', 'latest jobs', 'admit card', 'answer key', 'exam results'
+}
+SITE_SKIP_PATHS = {
+    'SR': ['/latestjob/', '/result/', '/admitcard/', '/answerkey/', '/syllabus/', '/search/', '/contactus/', '/important/'],
+    'FJA': ['/government-jobs/', '/state-government-jobs/', '/latest-notifications/', '/admit-card/', '/exam-results/', '/answer-key/', '/bank-jobs/', '/teaching-faculty-jobs/', '/engineering-jobs/', '/railway-jobs/', '/police-defence-jobs/', '/employment-news/', '/search-jobs/'],
+    'SE': ['/category/'],
+}
+SITE_PAGE_CONFIGS = {
+    'SR': [
+        {'url': 'https://www.sarkariresult.com/latestjob/', 'category': 'latest_jobs'},
+        {'url': 'https://www.sarkariresult.com/result/', 'category': 'results'},
+        {'url': 'https://www.sarkariresult.com/admitcard/', 'category': 'admit_cards'},
+        {'url': 'https://www.sarkariresult.com/answerkey/', 'category': 'answer_keys'},
+    ],
+    'FJA': [
+        {'url': 'https://www.freejobalert.com/latest-notifications/', 'category': 'latest_jobs'},
+        {'url': 'https://www.freejobalert.com/government-jobs/', 'category': 'latest_jobs'},
+        {'url': 'https://www.freejobalert.com/bank-jobs/', 'category': 'latest_jobs'},
+        {'url': 'https://www.freejobalert.com/railway-jobs/', 'category': 'latest_jobs'},
+        {'url': 'https://www.freejobalert.com/police-defence-jobs/', 'category': 'latest_jobs'},
+        {'url': 'https://www.freejobalert.com/teaching-faculty-jobs/', 'category': 'latest_jobs'},
+        {'url': 'https://www.freejobalert.com/admit-card/', 'category': 'admit_cards'},
+        {'url': 'https://www.freejobalert.com/exam-results/', 'category': 'results'},
+        {'url': 'https://www.freejobalert.com/answer-key/', 'category': 'answer_keys'},
+    ],
+    'SE': [
+        {'url': 'https://www.sarkariexam.com/category/top-online-form/', 'category': 'latest_jobs'},
+        {'url': 'https://www.sarkariexam.com/category/hot-job/', 'category': 'latest_jobs'},
+        {'url': 'https://www.sarkariexam.com/category/exam-result/', 'category': 'results'},
+        {'url': 'https://www.sarkariexam.com/category/admit-card/', 'category': 'admit_cards'},
+        {'url': 'https://www.sarkariexam.com/category/answer-keys/', 'category': 'answer_keys'},
+    ],
+}
+FJA_STATE_PAGE_MAP = {
+    'Andhra Pradesh': 'https://www.freejobalert.com/ap-government-jobs/',
+    'Assam': 'https://www.freejobalert.com/assam-government-jobs/',
+    'Bihar': 'https://www.freejobalert.com/bihar-government-jobs/',
+    'Chhattisgarh': 'https://www.freejobalert.com/chhattisgarh-government-jobs/',
+    'Delhi': 'https://www.freejobalert.com/delhi-government-jobs/',
+    'Gujarat': 'https://www.freejobalert.com/gujarat-government-jobs/',
+    'Haryana': 'https://www.freejobalert.com/haryana-government-jobs/',
+    'Himachal Pradesh': 'https://www.freejobalert.com/hp-government-jobs/',
+    'Jharkhand': 'https://www.freejobalert.com/jharkhand-government-jobs/',
+    'Karnataka': 'https://www.freejobalert.com/karnataka-government-jobs/',
+    'Kerala': 'https://www.freejobalert.com/kerala-government-jobs/',
+    'Madhya Pradesh': 'https://www.freejobalert.com/mp-government-jobs/',
+    'Maharashtra': 'https://www.freejobalert.com/maharashtra-government-jobs/',
+    'Odisha': 'https://www.freejobalert.com/odisha-government-jobs/',
+    'Punjab': 'https://www.freejobalert.com/punjab-government-jobs/',
+    'Rajasthan': 'https://www.freejobalert.com/rajasthan-government-jobs/',
+    'Tamil Nadu': 'https://www.freejobalert.com/tn-government-jobs/',
+    'Telangana': 'https://www.freejobalert.com/telangana-government-jobs/',
+    'Uttar Pradesh': 'https://www.freejobalert.com/up-government-jobs/',
+    'Uttarakhand': 'https://www.freejobalert.com/uttarakhand-government-jobs/',
+    'West Bengal': 'https://www.freejobalert.com/wb-government-jobs/',
+}
+
+
+def category_limit(category: str) -> int:
+    return CATEGORY_LIMITS.get(category, LISTING_PAGE_LIMIT)
+
+
+def empty_scrape_result() -> dict:
+    return {category: [] for category in CATEGORIES}
+
+
+def normalize_target_url(url: str) -> str:
+    if not url:
+        return ''
+    normalized, _ = urldefrag(url.strip())
+    return normalized
+
+
+def same_source_domain(full_url: str, site_type: str) -> bool:
+    host = urlparse(full_url).netloc.lower()
+    if site_type == 'SR':
+        return 'sarkariresult.com' in host
+    if site_type == 'FJA':
+        return 'freejobalert.com' in host
+    if site_type == 'SE':
+        return 'sarkariexam.com' in host
+    return False
+
+
+def title_has_signal(title: str, href: str, category: str) -> bool:
+    text = f'{title} {href}'.lower()
+    if CURRENT_YEAR_PATTERN.search(text):
+        return True
+    return any(term in text for term in CONTENT_SIGNAL_TERMS.get(category, []))
+
+
+def is_listing_candidate(title: str, full_url: str, site_type: str, category: str) -> bool:
+    if not title or not full_url:
+        return False
+
+    clean_title = ' '.join(title.split()).strip()
+    title_lower = clean_title.lower()
+    if title_lower in COMMON_SKIP_TITLES or len(clean_title) < 10:
+        return False
+
+    if is_social_href(full_url):
+        return False
+
+    parsed = urlparse(full_url)
+    if parsed.scheme not in ('http', 'https'):
+        return False
+
+    path_lower = parsed.path.lower()
+    if any(path_lower == skip.rstrip('/') or path_lower.startswith(skip) for skip in SITE_SKIP_PATHS.get(site_type, [])):
+        return False
+
+    if not same_source_domain(full_url, site_type):
+        return False
+
+    return title_has_signal(clean_title, full_url, category)
+
+
+def append_entry(res: dict, counts: dict, seen_urls: set, entry: dict) -> bool:
+    if not entry:
+        return False
+
+    category = entry.get('_cat')
+    if category not in counts:
+        return False
+
+    url_key = normalize_target_url(entry.get('original_url', ''))
+    if not url_key or url_key in seen_urls or counts[category] >= category_limit(category):
+        return False
+
+    seen_urls.add(url_key)
+    res[category].append(entry)
+    counts[category] += 1
+    return True
+
+
+def scrape_listing_page(page_url: str, site_type: str, category: str, res: dict, counts: dict, seen_urls: set, per_page_limit: int = None):
+    if counts[category] >= category_limit(category):
+        return
+
+    limit = min(per_page_limit or LISTING_PAGE_LIMIT, category_limit(category) - counts[category])
+    if limit <= 0:
+        return
+
+    print(f"  📄 [{site_type}] Listing {page_url}")
+    try:
+        session = requests.Session()
+        session.mount('https://', requests.adapters.HTTPAdapter(max_retries=3))
+        html = session.get(page_url, headers=HEADERS, timeout=30).text
+        soup = BeautifulSoup(html, 'html.parser')
+        page_seen = set()
+        added = 0
+
+        for link in soup.find_all('a', href=True):
+            title = ' '.join(link.get_text(' ', strip=True).split())
+            full_url = normalize_target_url(urljoin(page_url, link.get('href', '')))
+
+            if not is_listing_candidate(title, full_url, site_type, category):
+                continue
+            if full_url in page_seen or full_url in seen_urls:
+                continue
+
+            page_seen.add(full_url)
+            entry = generate_entry(title, full_url, site_type, category)
+            if append_entry(res, counts, seen_urls, entry):
+                added += 1
+
+            if added >= limit or counts[category] >= category_limit(category):
+                break
+    except Exception as exc:
+        print(f"  ❌ Listing page error [{site_type}] {page_url}: {exc}")
+
+
+def dedupe_category_entries(entries):
+    deduped = []
+    seen = set()
+    for entry in entries:
+        key = normalize_target_url(entry.get('original_url', '')) or entry.get('id')
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        deduped.append(entry)
+    return deduped
 
 
 def get_hero_image_url(category: str, title: str) -> str:
@@ -452,7 +658,7 @@ def generate_entry(title: str, url: str, site_type: str, category: str = 'latest
         if not info: info = extract_key_info(title, None)
         seo_html = generate_seo_post(title, category, info, raw_content_html, url)
         state_data = infer_state_data(title, raw_content_html)
-        time.sleep(0.5)
+        time.sleep(REQUEST_DELAY_SECONDS)
         return {
             "id": post_id, "title": clean_text(title),
             "original_url": url, "content_html": seo_html,
@@ -466,9 +672,11 @@ def generate_entry(title: str, url: str, site_type: str, category: str = 'latest
         return None
 
 
-def scrape_sarkariresult(limit=5):
-    res = {'results': [], 'admit_cards': [], 'latest_jobs': [], 'answer_keys': []}
+def scrape_sarkariresult(limit=None):
+    res = empty_scrape_result()
     counts = {key: 0 for key in res}
+    seen_urls = set()
+    home_limit = min(LISTING_PAGE_LIMIT, 8)
     url = "https://www.sarkariresult.com/"
     print(f"\n📡 Scraping SarkariResult ({url})...")
     try:
@@ -480,23 +688,26 @@ def scrape_sarkariresult(limit=5):
             head_txt = col.get_text().strip().split('\n')[0].strip()
             cat = next((v for k, v in mapping.items() if k.lower() in head_txt.lower()), None)
             if not cat: continue
-            for link in col.find_all('a')[:limit]:
+            for link in col.find_all('a')[:home_limit]:
                 title, href = link.text.strip(), link.get('href', '')
                 if not title or not href: continue
                 full_url = href if href.startswith('http') else url.rstrip('/') + '/' + href.lstrip('/')
                 if is_competitor_href(full_url, 'SR'): continue
                 e = generate_entry(title, full_url, "SR", cat)
-                if e:
-                    res[cat].append(e)
-                    counts[cat] += 1
-                if counts[cat] >= limit:
+                append_entry(res, counts, seen_urls, e)
+                if counts[cat] >= home_limit or counts[cat] >= category_limit(cat):
                     break
     except Exception as e: print(f"  ❌ SR Error: {e}")
+
+    for page in SITE_PAGE_CONFIGS['SR']:
+        scrape_listing_page(page['url'], 'SR', page['category'], res, counts, seen_urls)
     return res
 
-def scrape_freejobalert(limit=5):
-    res = {'results': [], 'admit_cards': [], 'latest_jobs': [], 'answer_keys': []}
+def scrape_freejobalert(limit=None):
+    res = empty_scrape_result()
     counts = {key: 0 for key in res}
+    seen_urls = set()
+    home_limit = min(LISTING_PAGE_LIMIT, 8)
     url = "https://www.freejobalert.com/"
     print(f"\n📡 Scraping FreeJobAlert ({url})...")
     try:
@@ -512,25 +723,33 @@ def scrape_freejobalert(limit=5):
             if not cat: continue
             nxt = h.find_next_sibling('ul') or h.find_next('ul')
             if not nxt: continue
-            if counts[cat] >= limit:
+            if counts[cat] >= home_limit:
                 continue
-            for link in nxt.find_all('a')[:limit]:
+            for link in nxt.find_all('a')[:home_limit]:
                 title, href = link.text.strip(), link.get('href', '')
                 if not title or not href: continue
                 full_url = href if href.startswith('http') else 'https://www.freejobalert.com' + href
                 if is_competitor_href(full_url, 'FJA'): continue
                 e = generate_entry(title, full_url, "FJA", cat)
-                if e:
-                    res[cat].append(e)
-                    counts[cat] += 1
-                if counts[cat] >= limit:
+                append_entry(res, counts, seen_urls, e)
+                if counts[cat] >= home_limit or counts[cat] >= category_limit(cat):
                     break
     except Exception as e: print(f"  ❌ FJA Error: {e}")
+
+    for page in SITE_PAGE_CONFIGS['FJA']:
+        scrape_listing_page(page['url'], 'FJA', page['category'], res, counts, seen_urls)
+
+    for state_name, page_url in FJA_STATE_PAGE_MAP.items():
+        if counts['latest_jobs'] >= category_limit('latest_jobs'):
+            break
+        scrape_listing_page(page_url, 'FJA', 'latest_jobs', res, counts, seen_urls, per_page_limit=FJA_STATE_PAGE_LIMIT)
     return res
 
-def scrape_sarkariexam(limit=5):
-    res = {'results': [], 'admit_cards': [], 'latest_jobs': [], 'answer_keys': []}
+def scrape_sarkariexam(limit=None):
+    res = empty_scrape_result()
     counts = {key: 0 for key in res}
+    seen_urls = set()
+    home_limit = min(LISTING_PAGE_LIMIT, 8)
     url = "https://www.sarkariexam.com/"
     print(f"\n📡 Scraping SarkariExam ({url})...")
     try:
@@ -540,22 +759,23 @@ def scrape_sarkariexam(limit=5):
         for h in soup.find_all(['h2', 'h3', 'h4']):
             cat = next((v for k, v in mapping.items() if k.lower() in h.get_text().lower()), None)
             if not cat: continue
-            if counts[cat] >= limit:
+            if counts[cat] >= home_limit:
                 continue
             nxt = h.find_next_sibling('ul') or h.find_next('ul')
             if not nxt: continue
-            for link in nxt.find_all('a')[:limit]:
+            for link in nxt.find_all('a')[:home_limit]:
                 title, href = link.text.strip(), link.get('href', '')
                 if not title or not href: continue
                 full_url = href if href.startswith('http') else 'https://www.sarkariexam.com' + href
                 if is_competitor_href(full_url, 'SE'): continue
                 e = generate_entry(title, full_url, "SE", cat)
-                if e:
-                    res[cat].append(e)
-                    counts[cat] += 1
-                if counts[cat] >= limit:
+                append_entry(res, counts, seen_urls, e)
+                if counts[cat] >= home_limit or counts[cat] >= category_limit(cat):
                     break
     except Exception as e: print(f"  ❌ SE Error: {e}")
+
+    for page in SITE_PAGE_CONFIGS['SE']:
+        scrape_listing_page(page['url'], 'SE', page['category'], res, counts, seen_urls)
     return res
 
 def main():
@@ -575,9 +795,12 @@ def main():
     try:
         all_data = {'status': 'success', 'results': [], 'admit_cards': [], 'latest_jobs': [], 'answer_keys': []}
         for scraper_func in [scrape_sarkariresult, scrape_freejobalert, scrape_sarkariexam]:
-            site_data = scraper_func(5)
-            for cat in ['results', 'admit_cards', 'latest_jobs', 'answer_keys']:
+            site_data = scraper_func()
+            for cat in CATEGORIES:
                 all_data[cat].extend(site_data.get(cat, []))
+
+        for cat in CATEGORIES:
+            all_data[cat] = dedupe_category_entries(all_data.get(cat, []))
 
         write_json_atomic(DATA_FILE, all_data)
 
@@ -586,7 +809,7 @@ def main():
             'status': 'success',
             'finished_at': finished_at,
             'duration_seconds': round(time.time() - started_ts, 2),
-            'counts': {cat: len(all_data.get(cat, [])) for cat in ['results', 'admit_cards', 'latest_jobs', 'answer_keys']}
+            'counts': {cat: len(all_data.get(cat, [])) for cat in CATEGORIES}
         })
         write_json_atomic(SCRAPE_STATUS_FILE, scrape_status)
         print("\n✅ Done! Scraped and saved to data.json")
