@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- <link rel="manifest" href="/onlyjob/manifest.json"/>
+ <link rel="manifest" href="manifest.json"/>
 <meta name="theme-color" content="#E85D04"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="OnlyJobs"/>
-<link rel="apple-touch-icon" href="/onlyjob/icon-192.png"/>
-<link rel="icon" type="image/png" sizes="192x192" href="/onlyjob/icon-192.png"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>OnlyJobs – Sarkari Results, Latest Govt Jobs 2026</title>
@@ -1058,7 +1058,7 @@ document.addEventListener('keydown', function(e) {
 /* ── PWA ── */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/onlyjob/sw.js', { scope: '/onlyjob/' });
+    navigator.serviceWorker.register('sw.js', { scope: './' });
   });
 }
 var _dp = null;

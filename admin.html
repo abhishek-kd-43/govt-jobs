@@ -1101,7 +1101,7 @@
                 <div class="page" id="page-scraped">
                     <div class="sec-hdr">
                         <div class="sec-title">🕷️ Live Scraped Posts</div>
-                        <button class="btn-add" onclick="triggerScraper()" style="background:linear-gradient(135deg,#059669,#047857);">🔄 Run Scraper Now</button>
+                        <button class="btn-add" id="run-scraper-btn" onclick="triggerScraper()" style="background:linear-gradient(135deg,#059669,#047857);">🔄 Run Scraper Now</button>
                     </div>
                     <div class="tbl-wrap">
                         <div class="tbl-toolbar">
@@ -1114,6 +1114,7 @@
                                 <option value="answer_keys">Answer Keys</option>
                             </select>
                         </div>
+                        <div id="scraped-mode-note" style="display:none;margin:0 14px 14px;padding:12px 14px;border-radius:10px;background:#FFF7ED;border:1px solid #FED7AA;color:#9A3412;font-size:13px;line-height:1.6;"></div>
                         <div style="overflow-x:auto;" id="scraped-tbl-body"><div style="padding:30px;text-align:center;color:var(--mu);">Click "Live Scraped Posts" in sidebar to load data.</div></div>
                         <div class="tbl-footer">
                             <div id="scraped-count">0 records</div>
@@ -1136,7 +1137,7 @@
                         </div>
                         <div class="modal-footer">
                             <button class="btn-cancel" onclick="closeModal('scraped')">Cancel</button>
-                            <button class="btn-save" onclick="saveScrapedItem()">💾 Save to data.json</button>
+                            <button class="btn-save" id="save-scraped-btn" onclick="saveScrapedItem()">💾 Save to data.json</button>
                         </div>
                     </div>
                 </div>
@@ -1331,7 +1332,7 @@
                             <div class="f-group"><label>Site Name</label><input class="f-inp" id="set_sitename"
                                     value="OnlyJobs" /></div>
                             <div class="f-group"><label>Site URL</label><input class="f-inp" id="set_siteurl"
-                                    value="https://abhishek-kd-43.github.io/onlyjob/" /></div>
+                                    value="https://abhishek-kd-43.github.io/govt-jobs/" /></div>
                         </div>
                         <div class="f-group"><label>Admin Username</label><input class="f-inp" id="set_adminuser"
                                 placeholder="admin" /></div>
@@ -2208,20 +2209,69 @@
         ════════════════════════════════════════ */
         var rawScrapedData = null;
         var editingScrapedId = null;
+        var scrapedReadOnlyMode = false;
+
+        function fetchJson(url, options) {
+            return fetch(url, options).then(function(r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            });
+        }
+
+        function setScrapedMode(readOnly, message) {
+            scrapedReadOnlyMode = readOnly;
+
+            var note = document.getElementById('scraped-mode-note');
+            var runBtn = document.getElementById('run-scraper-btn');
+            var saveBtn = document.getElementById('save-scraped-btn');
+
+            if (note) {
+                note.style.display = message ? 'block' : 'none';
+                note.innerHTML = message || '';
+            }
+
+            [runBtn, saveBtn].forEach(function(btn) {
+                if (!btn) return;
+                btn.disabled = readOnly;
+                btn.style.opacity = readOnly ? '0.6' : '1';
+                btn.style.cursor = readOnly ? 'not-allowed' : 'pointer';
+            });
+
+            if (runBtn) {
+                runBtn.title = readOnly ? 'Run the scraper from a local Python backend, not GitHub Pages.' : '';
+            }
+
+            if (saveBtn) {
+                saveBtn.title = readOnly ? 'Saving scraped edits requires python3 server.py or another writable backend.' : '';
+            }
+        }
+
+        function applyScrapedData(data, readOnly) {
+            rawScrapedData = data;
+            setScrapedMode(readOnly, readOnly
+                ? 'Read-only mode is active. GitHub Pages can display <code>data.json</code>, but running the scraper and saving edits require <code>python3 server.py</code> or another backend.'
+                : '');
+            renderScrapedTable('', '');
+            var total = (data.latest_jobs||[]).length + (data.results||[]).length + (data.admit_cards||[]).length + (data.answer_keys||[]).length;
+            var el = document.getElementById('cnt-scraped');
+            if(el) el.textContent = total;
+        }
 
         function loadScrapedData() {
             document.getElementById('scraped-tbl-body').innerHTML = '<div style="padding:40px;text-align:center;color:var(--mu);">Fetching live JSON from backend…</div>';
-            fetch('/api/scraped-data')
-                .then(function(r){ return r.json(); })
+            fetchJson('api/scraped-data')
                 .then(function(data) {
-                    rawScrapedData = data;
-                    renderScrapedTable('', '');
-                    var total = (data.latest_jobs||[]).length + (data.results||[]).length + (data.admit_cards||[]).length + (data.answer_keys||[]).length;
-                    var el = document.getElementById('cnt-scraped');
-                    if(el) el.textContent = total;
+                    applyScrapedData(data, false);
                 })
                 .catch(function() {
-                    document.getElementById('scraped-tbl-body').innerHTML = '<div style="padding:40px;text-align:center;color:var(--rd);"><b>❌ Cannot connect to backend API.</b><br>Make sure you are running <code>python3 server.py</code> instead of a plain HTTP server.</div>';
+                    fetchJson('data.json')
+                        .then(function(data) {
+                            applyScrapedData(data, true);
+                        })
+                        .catch(function() {
+                            setScrapedMode(false, '');
+                            document.getElementById('scraped-tbl-body').innerHTML = '<div style="padding:40px;text-align:center;color:var(--rd);"><b>❌ Could not load scraped data.</b><br>Run <code>python3 server.py</code> locally for full admin access, or make sure <code>data.json</code> is published with the site.</div>';
+                        });
                 });
         }
 
@@ -2244,12 +2294,13 @@
                 var cc = catColors[item._cat] || 'var(--b3);color:var(--mu)';
                 var size = (item.content_html||'').length;
                 var sizeColor = size > 5000 ? 'var(--gn)' : size > 500 ? 'var(--ac)' : 'var(--rd)';
+                var actionLabel = scrapedReadOnlyMode ? '👁️ View HTML' : '✏️ Edit HTML';
                 return '<tr>'
                     + '<td style="max-width:260px;"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+item.title.replace(/"/g,'&quot;')+'">'+item.title+'</div></td>'
                     + '<td><a href="'+(item.original_url||'#')+'" target="_blank" style="color:var(--bl);font-size:12px;">'+(item.source||'—')+'</a></td>'
                     + '<td><span class="tbl-badge" style="background:'+cc+';">'+item._cat+'</span></td>'
                     + '<td style="font-weight:700;color:'+sizeColor+';">'+(size ? size.toLocaleString()+' chars' : 'Empty')+'</td>'
-                    + '<td><div class="tbl-actions"><button class="tbl-btn tbl-edit" onclick="editScrapedItem(\'' + item.id + '\',\'' + item._cat + '\')">✏️ Edit HTML</button></div></td>'
+                    + '<td><div class="tbl-actions"><button class="tbl-btn tbl-edit" onclick="editScrapedItem(\'' + item.id + '\',\'' + item._cat + '\')">' + actionLabel + '</button></div></td>'
                     + '</tr>';
             }).join('');
             document.getElementById('scraped-count').textContent = filtered.length + ' posts';
@@ -2269,12 +2320,16 @@
 
         function saveScrapedItem() {
             if (!editingScrapedId || !rawScrapedData) return;
+            if (scrapedReadOnlyMode) {
+                showToast('Read-only mode on hosted site. Run server.py locally to save.', 'error');
+                return;
+            }
             var arr = rawScrapedData[editingScrapedId.cat];
             var idx = arr.findIndex(function(x){ return x.id === editingScrapedId.id; });
             if (idx < 0) return;
             arr[idx].content_html = document.getElementById('ms_content').value;
 
-            fetch('/api/scraped-data', {
+            fetch('api/scraped-data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(rawScrapedData)
@@ -2292,8 +2347,12 @@
         }
 
         function triggerScraper() {
+            if (scrapedReadOnlyMode) {
+                showToast('Hosted site is read-only. Run scraper from local server or backend.', 'error');
+                return;
+            }
             showToast('🔄 Scraper started… (~30s)', 'success');
-            fetch('/api/scrape', { method: 'POST' })
+            fetch('api/scrape', { method: 'POST' })
                 .then(function(r){ return r.json(); })
                 .then(function(d) { showToast(d.message || 'Scraper launched!', 'success'); })
                 .catch(function() { showToast('❌ Could not reach /api/scrape', 'error'); });

@@ -4,15 +4,23 @@
             Push notifications
    ================================================ */
 
-var CACHE = 'onlyjobs-v1';
-var OFFLINE_URL = '/onlyjob/index.html';
+var CACHE = 'onlyjobs-v2';
+var SITE_ROOT = new URL('./', self.location.href);
+
+function scopedUrl(path) {
+  return new URL(path, SITE_ROOT).toString();
+}
+
+var OFFLINE_URL = scopedUrl('index.html');
 
 var PRECACHE = [
-  '/onlyjob/index.html',
-  '/onlyjob/latestjobs.html',
-  '/onlyjob/mocktest.html',
-  '/onlyjob/auth.html',
-  '/onlyjob/manifest.json'
+  scopedUrl('index.html'),
+  scopedUrl('latestjobs.html'),
+  scopedUrl('mocktest.html'),
+  scopedUrl('auth.html'),
+  scopedUrl('manifest.json'),
+  scopedUrl('data.json'),
+  scopedUrl('state_portals.json')
 ];
 
 /* ── INSTALL: cache all core pages ── */
@@ -91,19 +99,19 @@ self.addEventListener('push', function(e) {
   try {
     data = e.data ? e.data.json() : {};
   } catch(err) {
-    data = { title: 'OnlyJobs', body: e.data ? e.data.text() : 'New update!', url: '/onlyjob/latestjobs.html' };
+    data = { title: 'OnlyJobs', body: e.data ? e.data.text() : 'New update!', url: scopedUrl('latestjobs.html') };
   }
 
   var title = data.title || 'OnlyJobs – New Job Alert!';
   var options = {
     body: data.body || 'New government job notification available. Tap to view!',
-    icon: '/onlyjob/icon-192.png',
-    badge: '/onlyjob/icon-192.png',
+    icon: scopedUrl('icon-192.png'),
+    badge: scopedUrl('icon-192.png'),
     vibrate: [200, 100, 200],
     tag: data.tag || 'onlyjobs-alert',
     renotify: true,
     requireInteraction: false,
-    data: { url: data.url || '/onlyjob/latestjobs.html' },
+    data: { url: data.url || scopedUrl('latestjobs.html') },
     actions: [
       { action: 'view', title: 'View Jobs' },
       { action: 'test', title: 'Take Mock Test' }
@@ -116,16 +124,16 @@ self.addEventListener('push', function(e) {
 /* ── NOTIFICATION CLICK ── */
 self.addEventListener('notificationclick', function(e) {
   e.notification.close();
-  var url = '/onlyjob/index.html';
+  var url = scopedUrl('index.html');
 
-  if (e.action === 'view') url = '/onlyjob/latestjobs.html';
-  else if (e.action === 'test') url = '/onlyjob/mocktest.html';
+  if (e.action === 'view') url = scopedUrl('latestjobs.html');
+  else if (e.action === 'test') url = scopedUrl('mocktest.html');
   else if (e.notification.data && e.notification.data.url) url = e.notification.data.url;
 
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(wins) {
       for (var i = 0; i < wins.length; i++) {
-        if (wins[i].url.includes('onlyjob') && 'focus' in wins[i]) {
+        if (wins[i].url.indexOf(SITE_ROOT.origin + SITE_ROOT.pathname) === 0 && 'focus' in wins[i]) {
           wins[i].navigate(url);
           return wins[i].focus();
         }

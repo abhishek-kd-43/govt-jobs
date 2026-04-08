@@ -8,6 +8,16 @@ Static OnlyJobs site with a local Python scraper, a lightweight local server, an
 - `scrape_status.json` is treated as a local runtime file and is ignored by Git.
 - The admin panel uses client-side demo authentication only. It is convenient for local editing, but it is not secure protection for a public deployment.
 
+## GitHub Pages Daily Scrape
+
+This repo now includes a scheduled workflow at `.github/workflows/daily-scrape-pages.yml`.
+
+- It runs the scraper every day at `02:45 UTC` which is `08:15 IST`.
+- It also supports manual runs from the GitHub Actions tab with `workflow_dispatch`.
+- After scraping, it updates `data.json`, pushes that change to the repo, and deploys the static site to GitHub Pages.
+
+For this workflow to publish the site, set the repository Pages source to `GitHub Actions` in GitHub Settings.
+
 ## Daily Scrape Automation
 
 This project includes macOS `launchd` automation for running the scraper every day.

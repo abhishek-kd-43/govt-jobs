@@ -2,8 +2,8 @@
   "name": "OnlyJobs – Sarkari Naukri 2026",
   "short_name": "OnlyJobs",
   "description": "Latest Govt Jobs, Mock Tests, Results & Admit Cards – India's smartest sarkari job portal",
-  "start_url": "/onlyjob/index.html",
-  "scope": "/onlyjob/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#1A1A2E",
@@ -20,21 +20,21 @@
       "name": "Latest Jobs",
       "short_name": "Jobs",
       "description": "View latest government job notifications",
-      "url": "/onlyjob/latestjobs.html",
+      "url": "./latestjobs.html",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Mock Test",
       "short_name": "Test",
       "description": "Take a free mock test",
-      "url": "/onlyjob/mocktest.html",
+      "url": "./mocktest.html",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Results",
       "short_name": "Results",
       "description": "Check exam results",
-      "url": "/onlyjob/index.html#results",
+      "url": "./index.html#results",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ],
