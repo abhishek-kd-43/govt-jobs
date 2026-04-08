@@ -63,6 +63,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 ico: typeParams.ico || '🔥',
                 bg: '#FEF2F2',
                 url: buildPostUrl(item, typeParams.category),
+                appDisp: item.applicant_count_display || '',
+                appLabel: item.applicant_metric_label || '',
+                appNote: item.applicant_metric_note || '',
                 note: 'Scraped successfully. Click to view local details.'
             };
             return Object.assign(base, typeParams.extra);
@@ -73,7 +76,20 @@ document.addEventListener("DOMContentLoaded", () => {
             const mapped = data.latest_jobs.map(item => buildRichItem(item, {
                 ico: '💼',
                 category: 'latest_jobs',
-                extra: { bdg: 'hot', type: 'Govt Job', qual: '-', age: '-', fee: '-', date: 'Apply Now' }
+                extra: {
+                    bdg: 'hot',
+                    type: 'Govt Job',
+                    qual: 'See post',
+                    edu: 'See post',
+                    age: 'See post',
+                    fee: 'See post',
+                    sal: 'See post',
+                    as: 'Live update',
+                    ld: 'See post',
+                    ed: 'As notified',
+                    vac: 0,
+                    date: 'Apply Now'
+                }
             }));
             JOBS.unshift(...mapped);
             applyAll();

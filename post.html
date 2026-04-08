@@ -47,6 +47,39 @@ header{background:#fff;border-bottom:1.5px solid var(--bd);position:sticky;top:0
     border-bottom: 2px solid var(--bd);
     padding-bottom: 15px;
 }
+.post-summary{
+    display:none;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:12px;
+    margin:0 0 24px 0;
+}
+.post-summary-card{
+    background:var(--b2);
+    border:1px solid var(--bd);
+    border-radius:10px;
+    padding:14px 16px;
+}
+.post-summary-card strong{
+    display:block;
+    font-size:11px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--mu);
+    margin-bottom:6px;
+}
+.post-summary-card span{
+    display:block;
+    font-size:15px;
+    font-weight:700;
+    color:var(--dk);
+}
+.post-summary-card small{
+    display:block;
+    margin-top:6px;
+    color:var(--mu);
+    line-height:1.5;
+    font-size:12px;
+}
 
 /* Comprehensive Scraped HTML Styling */
 #post-content {
@@ -148,6 +181,7 @@ footer{background:var(--dk);color:#64748B;padding:16px 20px; margin-top: 40px;}
 
 <div class="post-container">
     <div id="post-title" class="post-title" style="display: none;">Job Details</div>
+    <div id="post-summary" class="post-summary"></div>
     <div id="post-content">
         <div class="loading">Loading job details...</div>
     </div>
@@ -156,6 +190,15 @@ footer{background:var(--dk);color:#64748B;padding:16px 20px; margin-top: 40px;}
 <footer><div class="ft-in"><span>2026 OnlyJobs &middot; All information is aggregated for educational purposes.</span></div></footer>
 
 <script>
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const postId = params.get('id');
@@ -192,6 +235,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 document.getElementById('post-title').textContent = foundPost.title;
                 document.getElementById('post-title').style.display = 'block';
+
+                const summaryEl = document.getElementById('post-summary');
+                const sourceText = foundPost.source || 'OnlyJobs';
+                const stateText = foundPost.state_label || 'All India';
+                const applicantText = foundPost.applicant_count_display || 'Not disclosed yet';
+                const applicantLabel = foundPost.applicant_metric_label || 'Not officially disclosed';
+                const applicantNote = foundPost.applicant_metric_note || 'Applicant or participant totals have not been officially disclosed yet.';
+                summaryEl.innerHTML = ''
+                    + '<div class="post-summary-card"><strong>Source</strong><span>' + escapeHtml(sourceText) + '</span></div>'
+                    + '<div class="post-summary-card"><strong>Coverage</strong><span>' + escapeHtml(stateText) + '</span></div>'
+                    + '<div class="post-summary-card"><strong>Applicants</strong><span>' + escapeHtml(applicantText) + '</span><small>' + escapeHtml(applicantLabel + '. ' + applicantNote) + '</small></div>';
+                summaryEl.style.display = 'grid';
                 
                 if (foundPost.content_html) {
                     document.getElementById('post-content').innerHTML = foundPost.content_html;

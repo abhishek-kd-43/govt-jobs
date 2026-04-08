@@ -429,6 +429,7 @@ function renderJobs() {
     html += '<div class="jc-ft"><div class="dates">';
     html += '<div class="dt"><strong>Start:</strong> ' + j.as + '</div>';
     html += '<div class="dt"><strong>Last Date:</strong> ' + j.ld + '</div>';
+    if (j.appDisp && j.appDisp !== 'Not Disclosed' && j.appDisp !== 'Not disclosed yet') html += '<div class="dt"><strong>Applicants:</strong> ' + j.appDisp + (j.appLabel ? ' (' + j.appLabel + ')' : '') + '</div>';
     if (j.ed) html += '<div class="dt"><strong>Exam:</strong> ' + j.ed + '</div>';
     if (j.sal) html += '<div class="dt"><strong>Salary:</strong> ' + j.sal + '</div>';
     html += '</div><div class="ft-btns">';
@@ -445,7 +446,9 @@ function showDetail(id) {
   for (var i = 0; i < JOBS.length; i++) { if (JOBS[i].id === id) { j = JOBS[i]; break; } }
   if (!j) return;
   var vac = j.vac > 0 ? j.vac.toLocaleString() : 'Various';
-  alert(j.t + '\n\nOrganization: ' + j.org + '\nVacancies: ' + vac + '\nEducation: ' + j.edu + '\nApply Start: ' + j.as + '\nLast Date: ' + j.ld + '\nExam Date: ' + j.ed + '\nFee: ' + j.fee + '\nSalary: ' + j.sal + '\n\nVisit: ' + j.url);
+  var applicants = '';
+  if (j.appDisp) applicants = '\nApplicants: ' + j.appDisp + (j.appLabel ? ' (' + j.appLabel + ')' : '') + (j.appNote ? '\nApplicant Note: ' + j.appNote : '');
+  alert(j.t + '\n\nOrganization: ' + j.org + '\nVacancies: ' + vac + '\nEducation: ' + j.edu + applicants + '\nApply Start: ' + j.as + '\nLast Date: ' + j.ld + '\nExam Date: ' + j.ed + '\nFee: ' + j.fee + '\nSalary: ' + j.sal + '\n\nVisit: ' + j.url);
 }
 
 function renderPag() {

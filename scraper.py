@@ -334,6 +334,21 @@ def normalize_spaces(value: str) -> str:
     return ' '.join(str(value or '').split()).strip()
 
 
+def format_indian_number(value: int) -> str:
+    digits = str(int(value))
+    if len(digits) <= 3:
+        return digits
+    last_three = digits[-3:]
+    rest = digits[:-3]
+    parts = []
+    while len(rest) > 2:
+        parts.insert(0, rest[-2:])
+        rest = rest[:-2]
+    if rest:
+        parts.insert(0, rest)
+    return ','.join(parts + [last_three])
+
+
 def years_in_text(value: str):
     return [int(match.group(0)) for match in re.finditer(r'\b20\d{2}\b', value or '')]
 
@@ -426,6 +441,11 @@ def create_official_entry(title: str, url: str, source_label: str, content_html:
         'vacancies': 'Various',
         'exam_date': 'As per Schedule',
         'category': 'Central Govt',
+        'applicant_count': None,
+        'applicant_count_display': '',
+        'applicant_metric_label': 'Not officially disclosed',
+        'applicant_metric_note': 'Applicant or participant totals have not been officially disclosed yet.',
+        'applicant_metric_basis': 'not_disclosed',
     }
     final_info.update(derived_info)
     if info:
@@ -440,6 +460,11 @@ def create_official_entry(title: str, url: str, source_label: str, content_html:
         "content_html": seo_html,
         "source": source_label,
         "_cat": category,
+        "applicant_count": final_info.get('applicant_count'),
+        "applicant_count_display": final_info.get('applicant_count_display'),
+        "applicant_metric_label": final_info.get('applicant_metric_label'),
+        "applicant_metric_note": final_info.get('applicant_metric_note'),
+        "applicant_metric_basis": final_info.get('applicant_metric_basis'),
         "states": state_data['states'],
         "state_label": state_data['state_label'],
         "official_state_portal": state_data['official_state_portal']
@@ -600,6 +625,11 @@ def extract_key_info(title: str, content_soup) -> dict:
         'vacancies': 'Various',
         'exam_date': 'As per Schedule',
         'category': 'Central Govt',
+        'applicant_count': None,
+        'applicant_count_display': '',
+        'applicant_metric_label': 'Not officially disclosed',
+        'applicant_metric_note': 'Applicant or participant totals have not been officially disclosed yet.',
+        'applicant_metric_basis': 'not_disclosed',
     }
     if not title: title = "Government Job Update 2026"
     text = content_soup.get_text(' ', strip=True) if content_soup else ''
@@ -626,6 +656,79 @@ def extract_key_info(title: str, content_soup) -> dict:
         if cat.lower() in title.lower():
             info['category'] = cat
             break
+
+    info.update(extract_applicant_info(title, text))
+    return info
+
+
+def applicant_info_default() -> dict:
+    return {
+        'applicant_count': None,
+        'applicant_count_display': '',
+        'applicant_metric_label': 'Not officially disclosed',
+        'applicant_metric_note': 'Applicant or participant totals have not been officially disclosed yet.',
+        'applicant_metric_basis': 'not_disclosed',
+    }
+
+
+def parse_count_token(number_text: str, unit_text: str = '') -> int:
+    normalized = (number_text or '').replace(',', '').strip()
+    unit = (unit_text or '').strip().lower()
+    if not normalized:
+        return 0
+    value = float(normalized)
+    multiplier = 1
+    if unit == 'lakh':
+        multiplier = 100000
+    elif unit == 'crore':
+        multiplier = 10000000
+    elif unit == 'million':
+        multiplier = 1000000
+    return int(round(value * multiplier))
+
+
+def extract_applicant_info(title: str, text: str) -> dict:
+    info = applicant_info_default()
+    content = normalize_spaces(text)
+    if not content:
+        return info
+
+    patterns = [
+        ('applied', re.compile(r'(?:(?:over|more than|around|nearly|approximately)\s+)?(\d[\d,]*(?:\.\d+)?)\s*(lakh|crore|million)?\s+(?:candidates?|applicants?)\s+(?:have\s+)?applied\b', re.IGNORECASE)),
+        ('registered', re.compile(r'(?:(?:over|more than|around|nearly|approximately)\s+)?(\d[\d,]*(?:\.\d+)?)\s*(lakh|crore|million)?\s+(?:candidates?|applicants?)\s+(?:have\s+been\s+)?registered\b', re.IGNORECASE)),
+        ('applications received', re.compile(r'(?:(?:over|more than|around|nearly|approximately)\s+)?(\d[\d,]*(?:\.\d+)?)\s*(lakh|crore|million)?\s+applications?\s+(?:were\s+|have\s+been\s+)?received\b', re.IGNORECASE)),
+        ('appeared', re.compile(r'(?:(?:over|more than|around|nearly|approximately)\s+)?(\d[\d,]*(?:\.\d+)?)\s*(lakh|crore|million)?\s+(?:candidates?|students?)\s+(?:have\s+)?appeared\b', re.IGNORECASE)),
+        ('qualified', re.compile(r'(?:(?:over|more than|around|nearly|approximately)\s+)?(\d[\d,]*(?:\.\d+)?)\s*(lakh|crore|million)?\s+(?:candidates?|students?)\s+(?:have\s+)?qualified\b', re.IGNORECASE)),
+        ('registered', re.compile(r'total\s+registered\s+(?:candidates?|applicants?)\s*[:\-]?\s*(\d[\d,]*(?:\.\d+)?)\s*(lakh|crore|million)?', re.IGNORECASE)),
+        ('applied', re.compile(r'total\s+(?:candidates?|applicants?)\s+applied\s*[:\-]?\s*(\d[\d,]*(?:\.\d+)?)\s*(lakh|crore|million)?', re.IGNORECASE)),
+        ('appeared', re.compile(r'total\s+(?:candidates?|students?)\s+appeared\s*[:\-]?\s*(\d[\d,]*(?:\.\d+)?)\s*(lakh|crore|million)?', re.IGNORECASE)),
+    ]
+
+    label_map = {
+        'applied': 'Applied',
+        'registered': 'Registered',
+        'applications received': 'Applications Received',
+        'appeared': 'Appeared',
+        'qualified': 'Qualified',
+    }
+
+    for basis, pattern in patterns:
+        match = pattern.search(content)
+        if not match:
+            continue
+        count = parse_count_token(match.group(1), match.group(2) if match.lastindex and match.lastindex >= 2 else '')
+        if count <= 0:
+            continue
+        count_display = format_indian_number(count)
+        human_basis = label_map.get(basis, 'Reported')
+        info.update({
+            'applicant_count': count,
+            'applicant_count_display': count_display,
+            'applicant_metric_label': human_basis,
+            'applicant_metric_note': f'Source page mentions {count_display} candidates {basis.lower()}.',
+            'applicant_metric_basis': basis,
+        })
+        return info
 
     return info
 
@@ -694,6 +797,9 @@ def generate_seo_post(title: str, category: str, info: dict, clean_content_html:
     }
     toc_items = toc_items_map.get(category, toc_items_map['latest_jobs'])
     toc_html = ''.join([f'<li><a href="#sec-{i+1}" style="color:#1D4ED8;text-decoration:none;">→ {item}</a></li>' for i, item in enumerate(toc_items)])
+    applicant_display = info.get('applicant_count_display') or 'Not Disclosed'
+    applicant_label = info.get('applicant_metric_label') or 'Not officially disclosed'
+    applicant_note = info.get('applicant_metric_note') or 'Applicant or participant totals have not been officially disclosed yet.'
 
     highlights_html = f"""
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:20px 0;">
@@ -717,6 +823,19 @@ def generate_seo_post(title: str, category: str, info: dict, clean_content_html:
         <div style="font-size:11px;color:#64748B;font-weight:700;text-transform:uppercase;margin:4px 0;">Category</div>
         <div style="font-size:14px;font-weight:700;color:#7C3AED;">{info['category']}</div>
       </div>
+      <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:22px;">👥</div>
+        <div style="font-size:11px;color:#64748B;font-weight:700;text-transform:uppercase;margin:4px 0;">Applicants</div>
+        <div style="font-size:14px;font-weight:700;color:#C2410C;">{applicant_display}</div>
+        <div style="font-size:11px;color:#7C2D12;margin-top:4px;">{applicant_label}</div>
+      </div>
+    </div>
+    """
+
+    applicant_note_html = f"""
+    <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:14px 16px;margin:18px 0 24px;">
+      <div style="font-size:13px;font-weight:800;color:#9A3412;margin-bottom:6px;">All-India Applications / Participation</div>
+      <div style="font-size:13.5px;color:#7C2D12;line-height:1.7;">{applicant_note}</div>
     </div>
     """
 
@@ -737,6 +856,7 @@ def generate_seo_post(title: str, category: str, info: dict, clean_content_html:
   <p style="font-size:15px;color:#374151;margin-bottom:18px;">{meta_desc}</p>
   <h2 style="font-size:18px;font-weight:800;color:#1A1A2E;border-left:4px solid #E85D04;padding-left:12px;margin:24px 0 12px;">⚡ Key Highlights</h2>
   {highlights_html}
+  {applicant_note_html}
   <div style="background:#F0F2F8;border-radius:10px;padding:16px 20px;margin:24px 0;">
     <div style="font-weight:800;font-size:14px;color:#1A1A2E;margin-bottom:10px;">📋 Quick Navigation</div>
     <ol style="margin:0;padding-left:20px;color:#374151;font-size:13.5px;line-height:2;">{toc_html}</ol>
@@ -802,6 +922,11 @@ def generate_entry(title: str, url: str, site_type: str, category: str = 'latest
             "id": post_id, "title": clean_text(title),
             "original_url": url, "content_html": seo_html,
             "source": site_type, "_cat": category,
+            "applicant_count": info.get('applicant_count'),
+            "applicant_count_display": info.get('applicant_count_display'),
+            "applicant_metric_label": info.get('applicant_metric_label'),
+            "applicant_metric_note": info.get('applicant_metric_note'),
+            "applicant_metric_basis": info.get('applicant_metric_basis'),
             "states": state_data['states'],
             "state_label": state_data['state_label'],
             "official_state_portal": state_data['official_state_portal']
